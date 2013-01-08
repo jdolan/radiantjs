@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * The Radiant global is populated by AMD through Require.js.
  */
