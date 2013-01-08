@@ -2,25 +2,9 @@
  * The Map module provides an object model and framework for iterating and
  * accumulating .map geometry.
  */
-define('Radiant.Map', [ 'Backbone', 'Radiant.Math' ], function() {
+define('Radiant.Map', [ 'Backbone', 'Three' ], function() {
 
 	var module = {}
-
-	/**
-	 * A Vertex is a point in world coordinates.
-	 */
-	module.Vertex = Backbone.Model.extend({
-		defaults: {
-			v: new Vector3()
-		}
-	})
-
-	/**
-	 * A Collection of Vertexes.
-	 */
-	module.Vertexes = Backbone.Collection.extend({
-		model: module.Vertex
-	})
 
 	/**
 	 * Surfaces are described by their Vertexes and material.
@@ -28,16 +12,9 @@ define('Radiant.Map', [ 'Backbone', 'Radiant.Math' ], function() {
 	module.Surface = Backbone.Model.extend({
 		defaults: {
 			flags: 0,
-			value: 0,
-			vertexes: new module.Vertexes()
-		}
-	})
-
-	/**
-	 * A Collection of Surfaces.
-	 */
-	module.Surfaces = Backbone.Collection.extend({
-		model: module.Surface
+			value: 0
+		},
+		geometry: new THREE.Geometry()
 	})
 
 	/**
@@ -46,15 +23,9 @@ define('Radiant.Map', [ 'Backbone', 'Radiant.Math' ], function() {
 	 */
 	module.Brush = Backbone.Model.extend({
 		defaults: {
-			surfaces: new module.Surfaces()
-		}
-	})
-
-	/**
-	 * A Collection of Brushes.
-	 */
-	module.Brushes = Backbone.Collection.extend({
-		model: module.Brush
+			contents: 0
+		},
+		surfaces: new Backbone.Collection()
 	})
 
 	/**
@@ -66,23 +37,13 @@ define('Radiant.Map', [ 'Backbone', 'Radiant.Math' ], function() {
 			pairs: {
 				'class': 'undefined'
 			},
-			origin: new module.Vertex(),
-			brushes: new module.Brushes()
+			origin: new THREE.Vector3(),
 		},
+		
+		brushes: new Backbone.Collection(),
 
 		className: function() {
-			return this.pairs['class']
-		}
-	})
-
-	/**
-	 * A Collection of Entities.
-	 */
-	module.Entities = Backbone.Collection.extend({
-		model: module.Entity,
-
-		worldspawn: function() {
-			return this.models[0]
+			return this.get('pairs')['class']
 		}
 	})
 
@@ -91,9 +52,13 @@ define('Radiant.Map', [ 'Backbone', 'Radiant.Math' ], function() {
 	 * entity, and contains the bulk of the world geometry.
 	 */
 	module.Map = Backbone.Model.extend({
-
-		entities: new module.Entities()
-
+		defaults: {
+			entities: new Backbone.Collection()
+		},
+		
+		worldspawn: function() {
+			return this.get('entities').at(0)
+		}
 	})
 
 	window.Radiant.Map = module

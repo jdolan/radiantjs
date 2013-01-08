@@ -1,12 +1,14 @@
 /**
  * 
  */
-define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Draw', 'Radiant.GL' ], function() {
+define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 
 	var module = {}
 
 	/**
 	 * Regions are responsible for drawing a 2D or 3D area of the Layout.
+	 * 
+	 * @param {THREE.Box2}
 	 */
 	module.Region = function(area) {
 		this.area = area
@@ -50,12 +52,16 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Draw', 'Radiant.GL' 
 	var Base = function() {
 		this.canvas = $('#layout > canvas')[0]
 
-		this.context = Radiant.GL.getContext(this.canvas)
-		if (this.context) {
+		this.renderer = new THREE.WebGLRenderer({
+			canvas: this.canvas,
+			antialias: true
+		})
+		
+		if (this.renderer.getContext()) {
 			this.regions = new Array()
 			this.initialize()
 		} else {
-			console.error('Failed to initialize GL context')
+			console.error('Failed to initialize WebGL context')
 		}
 	}
 
@@ -80,28 +86,28 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Draw', 'Radiant.GL' 
 
 	_.extend(module.Classic.prototype, new Base(), {
 		initialize: function() {
+
+			var w = this.canvas.width / 2
+			var h = this.canvas.height / 2
+
 			// Camera
 			this.regions.push(new module.Region.Perspective({
-				area: new Rectangle(new Vector2(0, 0), new Vector2(this.canvas.width / 2,
-						this.canvas.height / 2))
+				area: new THREE.Box2(new THREE.Vector2(0, 0), new THREE.Vector2(w, h))
 			}))
 
 			// XY
 			this.regions.push(new module.Region.Orthographic({
-				area: new Rectangle(new Vector2(this.canvas.width / 2, 0), new Vector2(
-						this.canvas.width, this.canvas.height / 2))
+				area: new THREE.Box2(new THREE.Vector2(w, 0), new THREE.Vector2(w, h))
 			}))
 
 			// XZ
 			this.regions.push(new module.Region.Orthographic({
-				area: new Rectangle(new Vector2(0, this.canvas.width / 2), new Vector2(
-						this.canvas.width / 2, this.canvas.height))
+				area: new THREE.Box2(new THREE.Vector2(0, h), new THREE.Vector2(w, h))
 			}))
 
 			// YZ
 			this.regions.push(new module.Region.Orthographic({
-				area: new Rectangle(new Vector2(this.canvas.width / 2, this.canvas.width / 2),
-						new Vector2(this.canvas.width, this.canvas.height))
+				area: new THREE.Box2(new THREE.Vector2(w, h), new THREE.Vector2(w, h))
 			}))
 		}
 	})

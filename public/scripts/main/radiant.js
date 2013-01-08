@@ -18,22 +18,19 @@ require.config({
 		Three: 'lib/three-r54.min',
 		Underscore: 'lib/underscore-1.4.3.min',
 		
-		'Radiant.Draw': 'main/draw',
-		'Radiant.GL': 'main/gl',
 		'Radiant.Layout': 'main/layout',
 		'Radiant.Main': 'main/main',
 		'Radiant.Map': 'main/map',
-		'Radiant.Math': 'main/math',
 		'Radiant.Menu': 'main/menu',
 	},
 
 	shim: {
 		Backbone: {
-			deps: ['Underscore', 'jQuery'],
+			deps: [ 'Underscore' ],
 			exports: 'Backbone'
 		},
 		jQueryUI: {
-			deps: ['jQuery']
+			deps: [ 'jQuery' ]
 		}
 	},
 
