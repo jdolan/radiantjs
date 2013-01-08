@@ -8,11 +8,12 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Views are responsible for drawing a 2D or 3D area of the Layout.
 	 * 
-	 * @param {THREE.Box2}
+	 * @param {Array} params
 	 */
 	module.View = function(params) {
 		this.layout = params.layout
-		this.onRender = params.onRender
+		this.renderer = params.renderer
+		this.viewport = params.viewport
 
 		this.initialize(params)
 	}
@@ -21,10 +22,22 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 		initialize: function(params) {
 			// to be overridden
 		},
-
-		render: function(params) {
+		
+		update: function() {
 			// to be overridden
-		}
+		},
+
+		/**
+		 * 
+		 */
+		render: function() {
+			
+			this.update()
+			
+			this.renderer.setViewport(this.viewport.x, this.viewport.y, this.viewport.z, this.viewport.w)
+			
+			this.renderer.render(this.scene, this.camera)
+		},
 	})
 
 	/**
@@ -35,21 +48,34 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.View.Orthographic.prototype, module.View.prototype, {
+		/**
+		 * 
+		 */
 		initialize: function(params) {
-
+			var w = this.viewport.z / 2
+			var h = this.viewport.w / 2
+			
+			this.camera = new THREE.OrthographicCamera(-w, w, h, -h, 0.1, 16384.0)
+			this.camera.position.copy(params.origin)
+			this.camera.lookAt(new THREE.Vector3())
+			
+			this.scene = new THREE.Scene()
+			this.scene.add(this.camera)
+			
+			// ----------
+			var geometry = new THREE.CubeGeometry(256, 128, 64);
+			var material = new THREE.MeshBasicMaterial({
+				color: 0x00ff00
+			});
+			var cube = new THREE.Mesh(geometry, material);
+			this.scene.add(cube);
 		},
 
 		/**
-		 * Render the scene using this Orthographic View.
+		 * Update this View's Scene to reflect the current Map.
 		 */
-		render: function(params) {
-			this.layout.camera.toOrthographic()
-
-			if (this.onRender) {
-				this.onRender(params)
-			}
-
-			console.debug('Orthographic render')
+		update: function() {
+			// TODO iterate Map and update scene
 		}
 	})
 
@@ -61,21 +87,33 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.View.Perspective.prototype, module.View.prototype, {
+		/**
+		 * 
+		 */
 		initialize: function(params) {
-
+			var aspect = this.viewport.x / this.viewport.y
+			
+			this.camera = new THREE.PerspectiveCamera(60.0, aspect, 0.1, 4096.0)
+			this.camera.position.copy(params.origin)
+			this.camera.lookAt(new THREE.Vector3())
+			
+			this.scene = new THREE.Scene()
+			this.scene.add(this.camera)
+			
+			// ----------
+			var geometry = new THREE.CubeGeometry(256, 128, 64);
+			var material = new THREE.MeshBasicMaterial({
+				color: 0x00ff00
+			});
+			var cube = new THREE.Mesh(geometry, material);
+			this.scene.add(cube);
 		},
 
 		/**
-		 * Render the scene using this Perspective View.
+		 * Update this View's Scene to reflect the current Map.
 		 */
-		render: function(params) {
-			this.layout.camera.toPerspective()
-
-			if (this.onRender) {
-				this.onRender(params)
-			}
-
-			console.debug('Perspective render')
+		update: function() {
+			// TODO iterate Map and update scene
 		}
 	})
 
@@ -87,14 +125,19 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	var Layout = function(params) {
 
 		params.canvas = params.canvas || $('#layout > canvas')[0]
+
+		this.width = $(params.canvas).width()
+		this.height = $(params.canvas).height()
+		
+		this.views = new Array()
+
 		this.renderer = new THREE.WebGLRenderer(params)
 
 		if (this.renderer.getContext()) {
-			this.scene = new THREE.Scene()
-			this.camera = new THREE.CombinedCamera(8192.0, 8192.0, 60.0, 0.1, 4096.0, 0.1, 8192.0)
-			this.scene.add(this.camera)
-			this.views = new Array()
+			this.renderer.setSize(this.width, this.height)
 			this.initialize(params)
+
+			requestAnimationFrame(this.render.bind(this));
 		} else {
 			console.error('Failed to initialize WebGL context')
 		}
@@ -106,12 +149,13 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 		},
 
 		/**
-		 * Render all Views in the Layout.
+		 * Render all Views in this Layout.
 		 */
-		render: function(params) {
-			for ( var i = 0; i < this.regions.length; i++) {
-				this.views[i].render(params)
+		render: function() {
+			for ( var i = 0; i < this.views.length; i++) {
+				this.views[i].render()
 			}
+			requestAnimationFrame(this.render.bind(this))
 		}
 	})
 
@@ -125,42 +169,39 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	_.extend(module.Classic.prototype, Layout.prototype, {
 		initialize: function(params) {
 
-			var w = this.renderer.domElement.width
-			var h = this.renderer.domElement.height
+			var w = this.width / 2
+			var h = this.height / 2
 
 			// Perspective camera
 			this.views.push(new module.View.Perspective({
 				layout: this,
-				onRender: function(params) {
-					this.renderer.setViewport(0, 0, w / 2, h / 2)
-				}
+				renderer: this.renderer,
+				viewport: new THREE.Vector4(0, 0, w, h),
+				origin: new THREE.Vector3()
 			}))
 
-			// Orthographic XY
+			// Orthographic XZ (top-down)
 			this.views.push(new module.View.Orthographic({
 				layout: this,
-				onRender: function(params) {
-					this.renderer.setViewport(w / 2, 0, w / 2, h / 2)
-					this.camera.toTopView()
-				}
+				renderer: this.renderer,
+				viewport: new THREE.Vector4(w, 0, w, h),
+				origin: new THREE.Vector3(0, 1024, 0)
+			}))
+			
+			// Orthographic XY (left)
+			this.views.push(new module.View.Orthographic({
+				layout: this,
+				renderer: this.renderer,
+				viewport: new THREE.Vector4(0, h, w, h),
+				origin: new THREE.Vector3(1024, 0, 0)
 			}))
 
-			// Orthographic XZ
+			// Orthographic YZ (back)
 			this.views.push(new module.View.Orthographic({
 				layout: this,
-				onRender: function(params) {
-					this.renderer.setViewport(0, h / 2, w / 2, h / 2)
-					this.camera.toFrontView()
-				}
-			}))
-
-			// Orthographic YZ
-			this.views.push(new module.View.Orthographic({
-				layout: this,
-				onRender: function(params) {
-					this.renderer.setViewport(w / 2, h / 2, w / 2, h / 2)
-					this.camera.toLeftView()
-				}
+				renderer: this.renderer,
+				viewport: new THREE.Vector4(w, h, w, h),
+				origin: new THREE.Vector3(0, 0, 1024)
 			}))
 		}
 	})
