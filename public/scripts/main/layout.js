@@ -6,25 +6,23 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	var module = {}
 
 	/**
-	 * Regions are responsible for drawing a 2D or 3D area of the Layout.
+	 * Views are responsible for drawing a 2D or 3D area of the Layout.
 	 * 
 	 * @param {THREE.Box2}
 	 */
-	module.Region = function(params) {
+	module.View = function(params) {
 		this.layout = params.layout
-		this.area = params.area
-
-		this.scene = new THREE.Scene()
+		this.onRender = params.onRender
 
 		this.initialize(params)
 	}
 
-	_.extend(module.Region.prototype, new Object(), {
+	_.extend(module.View.prototype, Object.prototype, {
 		initialize: function(params) {
 			// to be overridden
 		},
 
-		render: function() {
+		render: function(params) {
 			// to be overridden
 		}
 	})
@@ -32,16 +30,25 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Orthographic (2D) regions.
 	 */
-	module.Region.Orthographic = function(params) {
-		module.Region.call(this, params)
+	module.View.Orthographic = function(params) {
+		module.View.call(this, params)
 	}
 
-	_.extend(module.Region.Orthographic.prototype, module.Region.prototype, {
+	_.extend(module.View.Orthographic.prototype, module.View.prototype, {
 		initialize: function(params) {
-			// TODO this.scene.add
+
 		},
 
-		render: function() {
+		/**
+		 * Render the scene using this Orthographic View.
+		 */
+		render: function(params) {
+			this.layout.camera.toOrthographic()
+
+			if (this.onRender) {
+				this.onRender(params)
+			}
+
 			console.debug('Orthographic render')
 		}
 	})
@@ -49,47 +56,61 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Perspective (3D) regions.
 	 */
-	module.Region.Perspective = function(params) {
-		module.Region.call(this, params)
+	module.View.Perspective = function(params) {
+		module.View.call(this, params)
 	}
 
-	_.extend(module.Region.Perspective.prototype, module.Region.prototype, {
+	_.extend(module.View.Perspective.prototype, module.View.prototype, {
 		initialize: function(params) {
 
 		},
 
-		render: function() {
+		/**
+		 * Render the scene using this Perspective View.
+		 */
+		render: function(params) {
+			this.layout.camera.toPerspective()
+
+			if (this.onRender) {
+				this.onRender(params)
+			}
+
 			console.debug('Perspective render')
 		}
 	})
 
 	/**
 	 * The base Layout class.
+	 * 
+	 * @param {Array} params The parameters to pass to THREE.WebGLRenderer.
 	 */
-	var Base = function(params) {
+	var Layout = function(params) {
 
 		params.canvas = params.canvas || $('#layout > canvas')[0]
 		this.renderer = new THREE.WebGLRenderer(params)
 
 		if (this.renderer.getContext()) {
-			this.regions = new Array()
+			this.scene = new THREE.Scene()
+			this.camera = new THREE.CombinedCamera(8192.0, 8192.0, 60.0, 0.1, 4096.0, 0.1, 8192.0)
+			this.scene.add(this.camera)
+			this.views = new Array()
 			this.initialize(params)
 		} else {
 			console.error('Failed to initialize WebGL context')
 		}
 	}
 
-	_.extend(Base.prototype, Object.prototype, {
+	_.extend(Layout.prototype, Object.prototype, {
 		initialize: function(params) {
 			// to be overridden
 		},
 
 		/**
-		 * Render all Regions in the Layout.
+		 * Render all Views in the Layout.
 		 */
 		render: function(params) {
 			for ( var i = 0; i < this.regions.length; i++) {
-				this.regions[i].render(params)
+				this.views[i].render(params)
 			}
 		}
 	})
@@ -98,40 +119,48 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	 * The classic (4-quadrant) GtkRadiant layout.
 	 */
 	module.Classic = function(params) {
-		Base.call(this, params)
+		Layout.call(this, params)
 	}
 
-	_.extend(module.Classic.prototype, Base.prototype, {
+	_.extend(module.Classic.prototype, Layout.prototype, {
 		initialize: function(params) {
 
 			var w = this.renderer.domElement.width
 			var h = this.renderer.domElement.height
 
-			var dw = w / 2
-			var dh = h / 2
-
-			// Camera
-			this.regions.push(new module.Region.Perspective({
+			// Perspective camera
+			this.views.push(new module.View.Perspective({
 				layout: this,
-				area: new THREE.Box2(new THREE.Vector2(0, 0), new THREE.Vector2(dw, dh))
+				onRender: function(params) {
+					this.renderer.setViewport(0, 0, w / 2, h / 2)
+				}
 			}))
 
-			// XY
-			this.regions.push(new module.Region.Orthographic({
+			// Orthographic XY
+			this.views.push(new module.View.Orthographic({
 				layout: this,
-				area: new THREE.Box2(new THREE.Vector2(dw, 0), new THREE.Vector2(w, dh))
+				onRender: function(params) {
+					this.renderer.setViewport(w / 2, 0, w / 2, h / 2)
+					this.camera.toTopView()
+				}
 			}))
 
-			// XZ
-			this.regions.push(new module.Region.Orthographic({
+			// Orthographic XZ
+			this.views.push(new module.View.Orthographic({
 				layout: this,
-				area: new THREE.Box2(new THREE.Vector2(0, dh), new THREE.Vector2(dw, h))
+				onRender: function(params) {
+					this.renderer.setViewport(0, h / 2, w / 2, h / 2)
+					this.camera.toFrontView()
+				}
 			}))
 
-			// YZ
-			this.regions.push(new module.Region.Orthographic({
+			// Orthographic YZ
+			this.views.push(new module.View.Orthographic({
 				layout: this,
-				area: new THREE.Box2(new THREE.Vector2(dw, dh), new THREE.Vector2(w, h))
+				onRender: function(params) {
+					this.renderer.setViewport(w / 2, h / 2, w / 2, h / 2)
+					this.camera.toLeftView()
+				}
 			}))
 		}
 	})
