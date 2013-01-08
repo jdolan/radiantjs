@@ -10,11 +10,20 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	 * 
 	 * @param {THREE.Box2}
 	 */
-	module.Region = function(area) {
-		this.area = area
+	module.Region = function(params) {
+		this.layout = params.layout
+		this.area = params.area
+
+		this.scene = new THREE.Scene()
+
+		this.initialize(params)
 	}
 
 	_.extend(module.Region.prototype, new Object(), {
+		initialize: function(params) {
+			// to be overridden
+		},
+
 		render: function() {
 			// to be overridden
 		}
@@ -23,11 +32,15 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Orthographic (2D) regions.
 	 */
-	module.Region.Orthographic = function(area) {
-		module.Region.call(this, area)
+	module.Region.Orthographic = function(params) {
+		module.Region.call(this, params)
 	}
 
-	_.extend(module.Region.Orthographic.prototype, new module.Region(), {
+	_.extend(module.Region.Orthographic.prototype, module.Region.prototype, {
+		initialize: function(params) {
+			// TODO this.scene.add
+		},
+
 		render: function() {
 			console.debug('Orthographic render')
 		}
@@ -36,11 +49,15 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Perspective (3D) regions.
 	 */
-	module.Region.Perspective = function(area) {
-		module.Region.call(this, area)
+	module.Region.Perspective = function(params) {
+		module.Region.call(this, params)
 	}
 
-	_.extend(module.Region.Perspective.prototype, new module.Region(), {
+	_.extend(module.Region.Perspective.prototype, module.Region.prototype, {
+		initialize: function(params) {
+
+		},
+
 		render: function() {
 			console.debug('Perspective render')
 		}
@@ -49,30 +66,30 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * The base Layout class.
 	 */
-	var Base = function() {
-		this.canvas = $('#layout > canvas')[0]
+	var Base = function(params) {
 
-		this.renderer = new THREE.WebGLRenderer({
-			canvas: this.canvas,
-			antialias: true
-		})
-		
+		params.canvas = params.canvas || $('#layout > canvas')[0]
+		this.renderer = new THREE.WebGLRenderer(params)
+
 		if (this.renderer.getContext()) {
 			this.regions = new Array()
-			this.initialize()
+			this.initialize(params)
 		} else {
 			console.error('Failed to initialize WebGL context')
 		}
 	}
 
-	_.extend(Base.prototype, new Object(), {
-		initialize: function() {
+	_.extend(Base.prototype, Object.prototype, {
+		initialize: function(params) {
 			// to be overridden
 		},
 
-		render: function() {
+		/**
+		 * Render all Regions in the Layout.
+		 */
+		render: function(params) {
 			for ( var i = 0; i < this.regions.length; i++) {
-				this.regions[i].render()
+				this.regions[i].render(params)
 			}
 		}
 	})
@@ -80,34 +97,41 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * The classic (4-quadrant) GtkRadiant layout.
 	 */
-	module.Classic = function() {
-		Base.call(this)
+	module.Classic = function(params) {
+		Base.call(this, params)
 	}
 
-	_.extend(module.Classic.prototype, new Base(), {
-		initialize: function() {
+	_.extend(module.Classic.prototype, Base.prototype, {
+		initialize: function(params) {
 
-			var w = this.canvas.width / 2
-			var h = this.canvas.height / 2
+			var w = this.renderer.domElement.width
+			var h = this.renderer.domElement.height
+
+			var dw = w / 2
+			var dh = h / 2
 
 			// Camera
 			this.regions.push(new module.Region.Perspective({
-				area: new THREE.Box2(new THREE.Vector2(0, 0), new THREE.Vector2(w, h))
+				layout: this,
+				area: new THREE.Box2(new THREE.Vector2(0, 0), new THREE.Vector2(dw, dh))
 			}))
 
 			// XY
 			this.regions.push(new module.Region.Orthographic({
-				area: new THREE.Box2(new THREE.Vector2(w, 0), new THREE.Vector2(w, h))
+				layout: this,
+				area: new THREE.Box2(new THREE.Vector2(dw, 0), new THREE.Vector2(w, dh))
 			}))
 
 			// XZ
 			this.regions.push(new module.Region.Orthographic({
-				area: new THREE.Box2(new THREE.Vector2(0, h), new THREE.Vector2(w, h))
+				layout: this,
+				area: new THREE.Box2(new THREE.Vector2(0, dh), new THREE.Vector2(dw, h))
 			}))
 
 			// YZ
 			this.regions.push(new module.Region.Orthographic({
-				area: new THREE.Box2(new THREE.Vector2(w, h), new THREE.Vector2(w, h))
+				layout: this,
+				area: new THREE.Box2(new THREE.Vector2(dw, dh), new THREE.Vector2(w, h))
 			}))
 		}
 	})

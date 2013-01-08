@@ -29,7 +29,7 @@ define('Radiant.Main', [ 'Radiant.Layout', 'Radiant.Map', 'Radiant.Menu' ], func
 		
 		this.preferences = new module.Preferences()
 		this.mainMenu = new Radiant.Menu.Main()
-		this.layout = new Radiant.Layout.Classic()
+		this.layout = new Radiant.Layout.Classic({})
 		this.map = new Radiant.Map.Map()
 		
 		console.log(Radiant.Version + ' initialized')
