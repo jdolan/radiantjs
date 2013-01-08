@@ -1,0 +1,24 @@
+@import url('lib/meyer-reset-2.0.min.css');
+
+@import url('lib/ui-lightness/jquery-ui-1.9.2.custom.min.css');
+
+#layout { /*border: 1px solid red;*/
+	bottom: 0;
+	left: 0;
+	right: 0;
+	top: 4em;
+	position: absolute;
+}
+
+#layout canvas {
+	height: 100%;
+	width: 100%;
+}
+
+#main-menu { /*border: 1px solid red;*/
+	height: 4em;
+	left: 0;
+	top: 0;
+	position: absolute;
+	right: 0;
+}
