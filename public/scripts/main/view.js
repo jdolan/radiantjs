@@ -104,8 +104,6 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 		/**
 		 * Initializes this Perspective View.
 		 * 
-		 * @override
-		 * 
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {

@@ -51,5 +51,5 @@ require.config({
  * Load the Main module and instantiate it.
  */
 require(['Radiant.Controller'], function() {
-	window.radiant = Radiant.Controller.Main()
+	window.radiant = Radiant.Controller.Main({})
 })

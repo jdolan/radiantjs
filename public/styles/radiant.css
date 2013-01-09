@@ -2,7 +2,7 @@
 
 @import url('lib/ui-lightness/jquery-ui-1.9.2.custom.min.css');
 
-#layout { /*border: 1px solid red;*/
+#layout {
 	bottom: 0;
 	left: 0;
 	right: 0;
@@ -15,10 +15,36 @@
 	width: 100%;
 }
 
-#main-menu { /*border: 1px solid red;*/
-	height: 4em;
+#toolbar {
+	background: #ccc; height : 4em;
 	left: 0;
 	top: 0;
 	position: absolute;
 	right: 0;
+	height: 4em;
+}
+
+#toolbar>.ui-menu:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+
+#toolbar>.ui-menu>.ui-menu-item {
+	display: inline-block;
+	float: left;
+	margin: 0;
+	padding: 0 0 0 1em;
+	width: auto;
+}
+
+.ui-menu .ui-menu-icon {
+	display: none;
+}
+
+html * {
+	font-size: 14px;
 }
