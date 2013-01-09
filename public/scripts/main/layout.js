@@ -7,7 +7,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
+define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function() {
 
 	var module = {}
 
@@ -27,6 +27,13 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.View.prototype, Object.prototype, {
+		constructor: module.View,
+
+		/**
+		 * Initializes this View. To be overridden.
+		 * 
+		 * @param {Object} params The initialization parameters.
+		 */
 		initialize: function(params) {
 			// to be overridden
 		},
@@ -57,9 +64,12 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.View.Orthographic.prototype, module.View.prototype, {
+		constructor: module.View.Orthographic,
 
 		/**
 		 * Initializes this Orthographic View.
+		 * 
+		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
 
@@ -89,6 +99,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.View.Perspective.prototype, module.View.prototype, {
+		constructor: module.View.Perspective,
 
 		/**
 		 * Initializes this Perspective View.
@@ -134,22 +145,20 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 
 			this.scene = new THREE.Scene()
 
-			this.defaultMaterial = new THREE.MeshLambertMaterial()
-
 			this.initialize(params)
 
 			// let's build a shitty little scene
 
-			var cube = new THREE.Mesh(new THREE.CubeGeometry(300, 100, 100), this.defaultMaterial)
+			var material = Radiant.Materials.Common.missing
+
+			var cube = new THREE.Mesh(new THREE.CubeGeometry(300, 100, 100), material)
 			this.scene.add(cube)
 
-			var sphere = new THREE.Mesh(new THREE.SphereGeometry(75), this.defaultMaterial)
+			material = Radiant.Materials.Common.hint
+
+			var sphere = new THREE.Mesh(new THREE.SphereGeometry(75), material)
 			sphere.position = new THREE.Vector3(0, 0, 0)
 			this.scene.add(sphere)
-
-			var light = new THREE.PointLight(0x2222dd, 1, 1024);
-			light.position.set(100, 100, 100);
-			this.scene.add(light);
 
 			requestAnimationFrame(this.render.bind(this));
 		} else {
@@ -158,6 +167,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(Layout.prototype, Object.prototype, {
+		constructor: Layout,
 
 		/**
 		 * Initializes this Layout. To be overridden.
@@ -177,6 +187,13 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 			this.renderer.clear()
 
 			for ( var i = 0; i < this.views.length; i++) {
+
+				if (this.views[i] instanceof module.View.Orthographic) {
+					this.scene.overrideMaterial = Radiant.Materials.Lines.wireframe
+				} else {
+					this.scene.overrideMaterial = undefined
+				}
+
 				this.views[i].render()
 			}
 
@@ -197,6 +214,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(module.Classic.prototype, Layout.prototype, {
+		constructor: module.Classic,
 
 		/**
 		 * Initializes the Classic Layout.

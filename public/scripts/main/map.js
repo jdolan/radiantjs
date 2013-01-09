@@ -6,7 +6,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Map', [ 'Backbone', 'Three' ], function() {
+define('Radiant.Map', [ 'Backbone', 'Radiant.Media' ], function() {
 
 	var module = {}
 

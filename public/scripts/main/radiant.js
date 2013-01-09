@@ -24,12 +24,14 @@ require.config({
 		Backbone: 'lib/backbone-0.9.9.min',
 		jQuery: 'lib/jquery-1.8.3.min',
 		jQueryUI: 'lib/jquery-ui-1.9.2.custom.min',
-		Three: 'lib/three-r54.min',
+		THREE: 'lib/three-r54.min',
 		Underscore: 'lib/underscore-1.4.3.min',
 		
 		'Radiant.Layout': 'main/layout',
 		'Radiant.Main': 'main/main',
 		'Radiant.Map': 'main/map',
+		'Radiant.Material': 'main/material',
+		'Radiant.Media': 'main/media',
 		'Radiant.Menu': 'main/menu',
 	},
 
