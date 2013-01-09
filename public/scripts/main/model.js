@@ -1,14 +1,31 @@
 'use strict';
 
 /**
- * The Map module provides an object model and framework for iterating and
+ * This module provides an object model and framework for iterating and
  * accumulating .map geometry.
  * 
  * @author jdolan
  */
-define('Radiant.Map', [ 'Backbone', 'Radiant.Media' ], function() {
+define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 	var module = {}
+	
+	/**
+	 * An individual preference.
+	 */
+	module.Preference = Backbone.Model.extend({
+		defaults: {
+			key: '',
+			value: ''
+		}
+	})
+
+	/**
+	 * A Collection of Preferences.
+	 */
+	module.Preferences = Backbone.Collection.extend({
+		model: module.Preference
+	})
 
 	/**
 	 * Surfaces are described by their Vertexes and material.
@@ -65,7 +82,7 @@ define('Radiant.Map', [ 'Backbone', 'Radiant.Media' ], function() {
 		}
 	})
 
-	window.Radiant.Map = module
+	window.Radiant.Model = module
 
 	return module
 })

@@ -1,4 +1,4 @@
 radiantjs
 =========
 
-An HTML5/Javascript map editor for id Tech engines.
+An HTML5/JavaScript/WebGL map editor for id Tech engines.

@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * This is a JavaScript implementation of the Radiant level editing software
- * for idTech games. It requires WebGL and a decent JavaScript engine.
+ * This is a JavaScript implementation of the Radiant level editing software for
+ * idTech games. It requires WebGL and a decent JavaScript engine.
  * 
  * @author jdolan
  */
@@ -27,12 +27,11 @@ require.config({
 		THREE: 'lib/three-r54.min',
 		Underscore: 'lib/underscore-1.4.3.min',
 		
-		'Radiant.Layout': 'main/layout',
-		'Radiant.Main': 'main/main',
-		'Radiant.Map': 'main/map',
+		'Radiant.Controller': 'main/controller',
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
-		'Radiant.Menu': 'main/menu',
+		'Radiant.Model': 'main/model',
+		'Radiant.View': 'main/view'
 	},
 
 	shim: {
@@ -51,6 +50,6 @@ require.config({
 /*
  * Load the Main module and instantiate it.
  */
-require(['Radiant.Main'], function() {
-	window.radiant = Radiant.Main.Application()
+require(['Radiant.Controller'], function() {
+	window.radiant = Radiant.Controller.Main()
 })

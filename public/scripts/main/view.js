@@ -7,12 +7,12 @@
  * 
  * @author jdolan
  */
-define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function() {
+define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function() {
 
 	var module = {}
 
 	/**
-	 * Views are responsible for drawing a 2D or 3D area of the Layout.
+	 * Views are responsible for drawing a 2D or 3D area of the layout.
 	 * 
 	 * @constructor
 	 * @param {Object} params The initialization parameters.
@@ -26,7 +26,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Material' ], functio
 		this.initialize(params)
 	}
 
-	_.extend(module.View.prototype, Object.prototype, {
+	_.extend(module.View.prototype, {
 		constructor: module.View,
 
 		/**
@@ -166,7 +166,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Material' ], functio
 		}
 	}
 
-	_.extend(Layout.prototype, Object.prototype, {
+	_.extend(Layout.prototype, {
 		constructor: Layout,
 
 		/**
@@ -258,7 +258,7 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Radiant.Material' ], functio
 		}
 	})
 
-	window.Radiant.Layout = module
+	window.Radiant.View = module
 
 	return module
 })
