@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * 
+ * @author jdolan
  */
 define('Radiant.Menu', [ 'Backbone', 'jQueryUI' ], function(a, b, c) {
 

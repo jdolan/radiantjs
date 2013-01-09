@@ -3,6 +3,8 @@
 /**
  * The Map module provides an object model and framework for iterating and
  * accumulating .map geometry.
+ * 
+ * @author jdolan
  */
 define('Radiant.Map', [ 'Backbone', 'Three' ], function() {
 

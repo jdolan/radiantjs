@@ -1,7 +1,14 @@
 'use strict';
 
 /**
- * The Radiant global is populated by AMD through Require.js.
+ * This is a JavaScript implementation of the Radiant level editing software
+ * for idTech games. It requires WebGL and a decent JavaScript engine.
+ * 
+ * @author jdolan
+ */
+
+/**
+ * The Radiant global is eventually populated through AMD via Require.js.
  */
 var Radiant = {
 	Version: 'RadiantJS 0.1',

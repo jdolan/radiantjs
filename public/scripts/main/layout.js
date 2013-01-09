@@ -4,6 +4,8 @@
  * They Layout module is responsible for rendering all Views (2D and 3D) of a
  * <code>Radiant.Map.Map</code>. A single WebGL canvas with multiple cameras
  * and viewports are used.
+ * 
+ * @author jdolan
  */
 define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 
@@ -12,7 +14,8 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	/**
 	 * Views are responsible for drawing a 2D or 3D area of the Layout.
 	 * 
-	 * @param {Array} params
+	 * @constructor
+	 * @param {Object} params The initialization parameters.
 	 */
 	module.View = function(params) {
 		this.layout = params.layout
@@ -28,19 +31,11 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 			// to be overridden
 		},
 
-		update: function() {
-			// to be overridden
-		},
-
 		/**
 		 * Render this view. The underlying implementation is given an
 		 * opportunity to act on the frame via <code>update</code>.
 		 */
 		render: function() {
-
-			this.update()
-
-			this.renderer.clear()
 
 			var v = this.viewport
 			this.renderer.setViewport(v.x, v.y, v.z, v.w)
@@ -50,14 +45,19 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	})
 
 	/**
-	 * Orthographic (2D) regions.
+	 * Orthographic (2D) Views.
+	 * 
+	 * @constructor
+	 * @augments Radiant.Layout.View
+	 * 
+	 * @param {Object} params The initialization parameters.
 	 */
 	module.View.Orthographic = function(params) {
 		module.View.call(this, params)
 	}
 
 	_.extend(module.View.Orthographic.prototype, module.View.prototype, {
-		
+
 		/**
 		 * Initializes this Orthographic View.
 		 */
@@ -71,31 +71,31 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 			this.camera = new THREE.OrthographicCamera(-w, w, h, -h, 0.1, 16384)
 			this.camera.position.copy(params.origin)
 			this.camera.lookAt(new THREE.Vector3())
-			
-			console.debug('Ortho: ' + -w + '-' + w + ', ' + h + '-' + -h)
 
 			this.scene.add(this.camera)
-		},
-
-		/**
-		 * Update this View's Scene to reflect the current Map.
-		 */
-		update: function() {
-			// TODO iterate Map and update scene
 		}
 	})
 
 	/**
-	 * Perspective (3D) regions.
+	 * Perspective (3D) Views.
+	 * 
+	 * @constructor
+	 * @augments Radiant.Layout.View
+	 * 
+	 * @param {Object} params The initialization parameters.
 	 */
 	module.View.Perspective = function(params) {
 		module.View.call(this, params)
 	}
 
 	_.extend(module.View.Perspective.prototype, module.View.prototype, {
-		
+
 		/**
 		 * Initializes this Perspective View.
+		 * 
+		 * @override
+		 * 
+		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
 			var aspect = this.viewport.z / this.viewport.w
@@ -105,20 +105,16 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 			this.camera.lookAt(new THREE.Vector3())
 
 			this.scene.add(this.camera)
-		},
-
-		/**
-		 * Update this View's Scene to reflect the current Map.
-		 */
-		update: function() {
-			// TODO iterate Map and update scene
 		}
 	})
 
 	/**
 	 * The base Layout class.
 	 * 
-	 * @param {Array} params The parameters to pass to THREE.WebGLRenderer.
+	 * @private
+	 * @constructor
+	 * 
+	 * @param {Object} params The initialization parameters.
 	 */
 	var Layout = function(params) {
 
@@ -142,6 +138,8 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 
 			this.initialize(params)
 
+			// let's build a shitty little scene
+
 			var cube = new THREE.Mesh(new THREE.CubeGeometry(300, 100, 100), this.defaultMaterial)
 			this.scene.add(cube)
 
@@ -160,29 +158,51 @@ define('Radiant.Layout', [ 'Underscore', 'jQuery', 'Three' ], function() {
 	}
 
 	_.extend(Layout.prototype, Object.prototype, {
+
+		/**
+		 * Initializes this Layout. To be overridden.
+		 * 
+		 * @param {Object} params The initialization parameters.
+		 */
 		initialize: function(params) {
 			// to be overridden
 		},
 
 		/**
-		 * Render all Views in this Layout.
+		 * Render all Views in this Layout. The Renderer is manually cleared
+		 * just once before the Views are repainted.
 		 */
 		render: function() {
+
+			this.renderer.clear()
+
 			for ( var i = 0; i < this.views.length; i++) {
 				this.views[i].render()
 			}
+
 			requestAnimationFrame(this.render.bind(this))
 		}
 	})
 
 	/**
 	 * The classic (4-quadrant) GtkRadiant layout.
+	 * 
+	 * @constructor
+	 * @augments Layout
+	 * 
+	 * @param {Object} params The initialization parameters.
 	 */
 	module.Classic = function(params) {
 		Layout.call(this, params)
 	}
 
 	_.extend(module.Classic.prototype, Layout.prototype, {
+
+		/**
+		 * Initializes the Classic Layout.
+		 * 
+		 * @param {Object} params The initialization parameters.
+		 */
 		initialize: function(params) {
 
 			var w = this.width / 2

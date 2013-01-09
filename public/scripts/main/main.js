@@ -2,6 +2,8 @@
 
 /**
  * The Main module bootstraps the editor.
+ * 
+ * @author jdolan
  */
 define('Radiant.Main', [ 'Radiant.Layout', 'Radiant.Map', 'Radiant.Menu' ], function() {
 
