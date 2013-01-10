@@ -147,12 +147,12 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 
 			// let's build a shitty little scene
 
-			var material = Radiant.Materials.Common.missing
+			var material = Radiant.Material.Common.missing
 
 			var cube = new THREE.Mesh(new THREE.CubeGeometry(300, 100, 100), material)
 			this.scene.add(cube)
 
-			material = Radiant.Materials.Common.hint
+			material = Radiant.Material.Common.hint
 
 			var sphere = new THREE.Mesh(new THREE.SphereGeometry(75), material)
 			sphere.position = new THREE.Vector3(0, 0, 0)
@@ -187,7 +187,7 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 			for ( var i = 0; i < this.views.length; i++) {
 
 				if (this.views[i] instanceof module.View.Orthographic) {
-					this.scene.overrideMaterial = Radiant.Materials.Lines.wireframe
+					this.scene.overrideMaterial = Radiant.Material.Lines.wireframe
 				} else {
 					this.scene.overrideMaterial = undefined
 				}

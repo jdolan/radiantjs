@@ -64,7 +64,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 		})
 	}
 
-	window.Radiant.Materials = module
+	window.Radiant.Material = module
 
 	return module
 })
