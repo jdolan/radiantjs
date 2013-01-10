@@ -127,6 +127,8 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 	 */
 	var Layout = function(params) {
 
+		this.application = params.application
+
 		params.canvas = params.canvas || $('#layout > canvas')[0]
 
 		this.width = $(params.canvas).width()
@@ -145,20 +147,7 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 
 			this.initialize(params)
 
-			// let's build a shitty little scene
-
-			var material = Radiant.Material.Common.missing
-
-			var cube = new THREE.Mesh(new THREE.CubeGeometry(300, 100, 100), material)
-			this.scene.add(cube)
-
-			material = Radiant.Material.Common.hint
-
-			var sphere = new THREE.Mesh(new THREE.SphereGeometry(75), material)
-			sphere.position = new THREE.Vector3(0, 0, 0)
-			this.scene.add(sphere)
-
-			requestAnimationFrame(this.render.bind(this));
+			this.trapEvents()
 		} else {
 			console.error('Failed to initialize WebGL context')
 		}
@@ -177,7 +166,17 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 		},
 
 		/**
-		 * Render all Views in this Layout. The Renderer is manually cleared
+		 * Traps Radiant.Event and begin rendering.
+		 */
+		trapEvents: function() {
+
+			$(this.application).on(Radiant.Event.Map.Loaded, this.onLoadMap.bind(this))
+
+			requestAnimationFrame(this.render.bind(this));
+		},
+
+		/**
+		 * Renders all Views in this Layout. The Renderer is manually cleared
 		 * just once before the Views are repainted.
 		 */
 		render: function() {
@@ -196,6 +195,21 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 			}
 
 			requestAnimationFrame(this.render.bind(this))
+		},
+
+		/**
+		 * Map load event listener.
+		 */
+		onLoadMap: function(event, map) {
+
+			for ( var i = 0; i < map.entities.length; i++) {
+				var entity = map.entities.at(i)
+
+				for ( var j = 0; j < entity.brushes.length; j++) {
+					var brush = entity.brushes.at(j)
+					this.scene.add(brush.mesh)
+				}
+			}
 		}
 	})
 

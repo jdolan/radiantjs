@@ -28,6 +28,7 @@ require.config({
 		Underscore: 'lib/underscore-1.4.3.min',
 		
 		'Radiant.Controller': 'main/controller',
+		'Radiant.Event': 'main/event',
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
 		'Radiant.Model': 'main/model',
@@ -51,5 +52,5 @@ require.config({
  * Load the Main module and instantiate it.
  */
 require(['Radiant.Controller'], function() {
-	window.radiant = Radiant.Controller.Application({})
+	window.radiant = new Radiant.Controller.Application({})
 })

@@ -5,7 +5,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Media', [ 'THREE' ], function() {
+define('Radiant.Media', [ 'THREE', 'Radiant.Event' ], function() {
 
 	var module = {
 

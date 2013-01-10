@@ -28,6 +28,7 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.Menu = function(params) {
+
 		var self = this
 
 		this.application = params.application
@@ -36,7 +37,7 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 
 		this.container.load(this.template, function() {
 			self.menu = $('ul', this).menu()
-			self.bindUiEvents()
+			self.initialize(params)
 		})
 	}
 
@@ -44,9 +45,11 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		constructor: module.Menu,
 
 		/**
-		 * Bind UI events to elements loaded into this menu. To be overridden.
+		 * Initializes this Menu. To be overridden.
+		 * 
+		 * @param {Object} params The initialization parameters.
 		 */
-		bindUiEvents: function() {
+		initialize: function(params) {
 			// to be overridden
 		}
 	})
@@ -71,18 +74,19 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		constructor: module.MainMenu,
 
 		/**
-		 * Bind UI events to elements loaded in this menu.
+		 * Initializes this Menu. To be overridden.
+		 * 
+		 * @param {Object} params The initialization parameters.
 		 */
-		bindUiEvents: function() {
+		initialize: function(params) {
 			var self = this
-			
 			$('a[href=#Open]', this.menu).click(function(e) {
 				$('#dialog').load(T('file-open')).dialog({
 					title: 'Select a .map file..',
 					buttons: {
 						Open: function() {
-							var file = $('#map-file')[0].files[0]
-							self.application.map = Radiant.Model.MapFactory.load(file)
+							var file = $('#file-open-file')[0].files[0]
+							self.application.loadMap(file)
 							$(this).dialog('close')
 						},
 						Cancel: function() {
@@ -102,7 +106,7 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.Application = function(params) {
-		
+
 		params.application = this
 
 		this.preferences = new Radiant.Model.Preferences(params)
@@ -113,13 +117,24 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		console.log(Radiant.Version)
 	}
 
-	_.extend(module.Main.prototype, {
+	_.extend(module.Application.prototype, {
 		constructor: module.Application,
-		
+
 		/**
+		 * Loads a Radiant.Model.Map from the specified File. Triggers the
+		 * <code>onLoadMap</code> Event on success.
 		 * 
+		 * @param {File} The .map file.
 		 */
-		
+		loadMap: function(file) {
+
+			var callback = function(map) {
+				this.map = map
+				$(this).trigger(Radiant.Event.Map.Loaded, this.map)
+			}
+
+			Radiant.Model.MapFactory.load(file, callback.bind(this))
+		}
 	})
 
 	window.Radiant.Controller = module

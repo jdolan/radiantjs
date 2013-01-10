@@ -28,19 +28,18 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	})
 
 	/**
-	 * Surfaces are described by their Vertexes and material.
+	 * Surfaces are described by their texture and attributes. Every Surface
+	 * must belong to a Brush.
 	 */
 	module.Surface = Backbone.Model.extend({
 		defaults: {
+			texture: 'common/caulk',
+			offsetS: 0,
+			offsetT: 0,
+			scaleS: 0,
+			scaleT: 0,
 			flags: 0,
 			value: 0
-		},
-
-		/**
-		 * 
-		 */
-		initialize: function(attributes, options) {
-			this.material = options.material || Radiant.Material.Common.caulk
 		}
 	})
 
@@ -51,11 +50,12 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	module.Brush = Backbone.Model.extend({
 
 		/**
-		 * 
+		 * Backbone initialization.
 		 */
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
 		}
 	})
 
@@ -74,14 +74,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		},
 
 		/**
-		 * 
+		 * Backbone initialization.
 		 */
 		initialize: function(attributes, options) {
 			this.brushes = new Backbone.Collection()
 		},
 
 		/**
-		 * 
+		 * @return {String} The class name (e.g. 'light').
 		 */
 		className: function() {
 			return this.get('pairs')['class']
@@ -98,14 +98,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		},
 
 		/**
-		 * 
+		 * Backbone initialization.
 		 */
 		initialize: function(attributes, options) {
 			this.entities = new Backbone.Collection()
 		},
 
 		/**
-		 * 
+		 * @return {Radiant.Model.Entity} The worldspawn entity.
 		 */
 		worldspawn: function() {
 			return this.entities.at(0)
@@ -162,12 +162,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					}
 				}
 			}
-			
+
 			return null
 		},
 
 		/**
+		 * Parses a Brush.
 		 * 
+		 * @return {Radiant.Model.Brush} The parsed Brush.
 		 */
 		parseBrush: function() {
 
@@ -189,7 +191,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 					if (++v % 3 == 0) {
 						brush.geometry.faces.push(new THREE.Face3(v - 3, v - 2, v - 1))
-						
+
 						// TODO parse the material, surface flags, etc..
 					}
 				}
@@ -199,7 +201,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		},
 
 		/**
+		 * Parses an Entity.
 		 * 
+		 * @return {Radiant.Model.Entity} The parsed Entity.
 		 */
 		parseEntity: function() {
 
@@ -228,7 +232,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		},
 
 		/**
+		 * Parse entry point.
 		 * 
+		 * @return {Radiant.Model.Map} The parsed Map.
 		 */
 		parse: function() {
 
@@ -251,18 +257,23 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	})
 
 	/**
-	 * 
+	 * A factory class for loading or creating Maps.
 	 */
 	module.MapFactory = {
 
 		/**
+		 * Loads a Map from the specified .map file.
 		 * 
+		 * @param {File} file The .map file.
+		 * @param {Function} callback A callback taking the new Map.
+		 * 
+		 * @return {Radiant.Model.Map} The Map.
 		 */
-		load: function(file) {
+		load: function(file, callback) {
 			if (file) {
 				var reader = new FileReader()
 				reader.onload = function(e) {
-					return new Parser(e.target.result).parse()
+					callback(new Parser(e.target.result).parse())
 				}
 				reader.readAsText(file)
 			} else {
