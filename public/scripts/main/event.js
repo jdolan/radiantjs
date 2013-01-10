@@ -7,7 +7,8 @@ define('Radiant.Event', [], function() {
 	
 	var module = {
 		Map: {
-			Loaded: 'Map.Loaded'
+			Load: 'Map.Load',
+			Unload: 'Map.Unload'
 		}
 	}
 	

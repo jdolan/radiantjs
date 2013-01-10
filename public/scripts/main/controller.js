@@ -127,10 +127,12 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		 * @param {File} The .map file.
 		 */
 		loadMap: function(file) {
+			
+			$(this).trigger(Radiant.Event.Map.Unload, this.map)
 
 			var callback = function(map) {
 				this.map = map
-				$(this).trigger(Radiant.Event.Map.Loaded, this.map)
+				$(this).trigger(Radiant.Event.Map.Load, this.map)
 			}
 
 			Radiant.Model.MapFactory.load(file, callback.bind(this))

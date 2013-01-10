@@ -166,11 +166,14 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 		},
 
 		/**
-		 * Traps Radiant.Event and begin rendering.
+		 * Traps Radiant.Event and begins the rendering loop.
 		 */
 		trapEvents: function() {
+			
+			var app = $(this.application)
 
-			$(this.application).on(Radiant.Event.Map.Loaded, this.onLoadMap.bind(this))
+			app.on(Radiant.Event.Map.Load, this.onMapLoad.bind(this))
+			app.on(Radiant.Event.Map.Unload, this.onMapUnload.bind(this))
 
 			requestAnimationFrame(this.render.bind(this));
 		},
@@ -198,9 +201,9 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 		},
 
 		/**
-		 * Map load event listener.
+		 * Radiant.Event.Map.Load listener.
 		 */
-		onLoadMap: function(event, map) {
+		onMapLoad: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
 				var entity = map.entities.at(i)
@@ -208,6 +211,21 @@ define('Radiant.View', [ 'Underscore', 'jQuery', 'Radiant.Material' ], function(
 				for ( var j = 0; j < entity.brushes.length; j++) {
 					var brush = entity.brushes.at(j)
 					this.scene.add(brush.mesh)
+				}
+			}
+		},
+		
+		/**
+		 * Radiant.Event.Map.Unload listener.
+		 */
+		onMapUnload: function(event, map) {
+			
+			for (var i = 0; i < map.entities.length; i++) {
+				var entity = map.entities.at(i)
+				
+				for (var j = 0; j < entity.brushes.length; j++) {
+					var brush = entity.brushes.at(j)
+					this.scene.remove(brush.mesh)
 				}
 			}
 		}

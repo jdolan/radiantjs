@@ -55,7 +55,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk/*new THREE.MeshFaceMaterial()*/)
 		}
 	})
 
@@ -67,9 +67,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		defaults: function() {
 			return {
 				pairs: {
-					'class': 'undefined'
-				},
-				origin: new THREE.Vector3()
+					'classname': 'undefined'
+				}
 			}
 		},
 
@@ -81,10 +80,35 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		},
 
 		/**
-		 * @return {String} The class name (e.g. 'light').
+		 * @return {String} The class name (e.g. 'func_rotating').
 		 */
-		className: function() {
-			return this.get('pairs')['class']
+		classname: function() {
+			return this.get('pairs')['classname']
+		},
+
+		/**
+		 * Returns the origin of this Entity iff it contains no brushes.
+		 * 
+		 * @return {THREE.Vector3} The origin, or null.
+		 */
+		origin: function() {
+			if (this.brushes.length == 0) {
+				return Radiant.Util.parseVector3(this.get('pairs')['origin'])
+			}
+			return null
+		},
+
+		/**
+		 * @return {String} A String representation of this Entity.
+		 */
+		toString: function() {
+			var string = this.classname(), origin = this.origin()
+			if (origin) {
+				string += ' at ' + origin
+			} else {
+				string += ' with ' + this.brushes.length + ' brushes'
+			}
+			return string
 		}
 	})
 
@@ -113,58 +137,19 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	})
 
 	/**
-	 * This object parses .map files.
+	 * A Parser for .map files.
 	 * 
 	 * @constructor
+	 * @augments {Radiant.Util.Parser}
 	 * 
 	 * @param {String} buffer The raw .map contents.
 	 */
 	var Parser = function(buffer) {
-		this.buffer = buffer
-		this.index = 0
+		Radiant.Util.Parser.call(this, buffer)
 	}
 
-	_.extend(Parser.prototype, {
-
-		/**
-		 * Parses the next token in a .map file. This is reminiscent of
-		 * <code>Com_Parse</code> in Quake's shared.c.
-		 * 
-		 * @return {String} The next available token, or null.
-		 */
-		nextToken: function() {
-
-			var token = '', comment = false, quote = false
-			while (this.index < this.buffer.length) {
-				var c = this.buffer.charAt(this.index++)
-
-				if (comment) {
-					if (/\n/.test(c)) {
-						comment = false
-						token = ''
-					}
-				} else {
-					if ('"' == c) {
-						if (quote) {
-							return token
-						} else {
-							quote = true
-						}
-					} else if (/\s/.test(c) && !quote) {
-						if (token.length) {
-							return token
-						}
-					} else {
-						token += c
-						if (token == '//') {
-							comment = true
-						}
-					}
-				}
-			}
-
-			return null
-		},
+	_.extend(Parser.prototype, Radiant.Util.Parser.prototype, {
+		constructor: Parser,
 
 		/**
 		 * Parses a Brush.
@@ -175,7 +160,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 			var brush = new module.Brush()
 
-			var token, x, y, z, v = 0
+			var token, x, y, z, face, material, v = 0
 			while (true) {
 				token = this.nextToken()
 				if (!token || token == '}') {
@@ -190,9 +175,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
 
 					if (++v % 3 == 0) {
-						brush.geometry.faces.push(new THREE.Face3(v - 3, v - 2, v - 1))
+						material = Radiant.Material.Common.caulk
 
-						// TODO parse the material, surface flags, etc..
+						//brush.mesh.material.materials.push(material)
+
+						face = new THREE.Face3(v - 3, v - 2, v - 1)
+						face.materialIndex = v / 3
+
+						brush.geometry.faces.push(face)
 					}
 				}
 			}
@@ -227,6 +217,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					}
 				}
 			}
+
+			console.debug(entity.toString())
 
 			return entity
 		},

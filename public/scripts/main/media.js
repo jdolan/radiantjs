@@ -5,7 +5,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Media', [ 'THREE', 'Radiant.Event' ], function() {
+define('Radiant.Media', [ 'THREE', 'Radiant.Event', 'Radiant.Util' ], function() {
 
 	var module = {
 
@@ -37,17 +37,17 @@ define('Radiant.Media', [ 'THREE', 'Radiant.Event' ], function() {
 			asset = cache[url]
 		} else {
 			switch (type) {
-			
+
 			case module.Material:
 				asset = THREE.ImageUtils.loadTexture(url)
 				asset.wrapS = asset.wrapT = THREE.RepeatWrapping
 				break
-			
+
 			default:
 				console.error('Failed to load "' + url + '" (' + type + ')')
 				break
 			}
-			
+
 			if (asset) {
 				cache[url] = asset
 			}

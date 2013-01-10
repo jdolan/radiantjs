@@ -24,6 +24,15 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	}
 
 	/**
+	 * The Mesh materials.
+	 */
+	module.Mesh = {
+		entity: new THREE.MeshBasicMaterial({
+			color: 0x888822
+		})
+	}
+
+	/**
 	 * A convenience function for loading materials.
 	 * 
 	 * @param {String} The image URL.

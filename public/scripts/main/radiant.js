@@ -32,6 +32,7 @@ require.config({
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
 		'Radiant.Model': 'main/model',
+		'Radiant.Util': 'main/util',
 		'Radiant.View': 'main/view'
 	},
 
