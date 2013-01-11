@@ -155,7 +155,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		initialize: function(params) {
 			var aspect = this.viewport.z / this.viewport.w
 
-			this.camera = new THREE.PerspectiveCamera(60.0, aspect, 0.1, 4096.0)
+			this.camera = new THREE.PerspectiveCamera(50.0, aspect, 0.1, 4096.0)
 			this.camera.position.copy(params.position)
 			this.camera.lookAt(new THREE.Vector3())
 
@@ -205,8 +205,15 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			this.on('mousemove', function(e) {
 				if (self.freelook) {
 					var s = self.layout.application.preferences.get('FreelookSensitivity')
-					self.rotation.y += (e.screenX - self.lastMousemove.x) * s
-					self.rotation.x += (e.screenY - self.lastMousemove.y) * s
+					
+					self.rotation.y -= (e.screenX - self.lastMousemove.x) * s
+					
+					if (self.layout.application.preferences.get('FreelookInvert')) {
+						self.rotation.x += (e.screenY - self.lastMousemove.y) * s
+					} else {
+						self.rotation.x -= (e.screenY - self.lastMousemove.y) * s
+					}
+					
 					self.lastMousemove.x = e.screenX
 					self.lastMousemove.y = e.screenY
 				}
@@ -243,10 +250,9 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
-				var velocity = new THREE.Vector3().copy(this.velocity)
-				this.camera.position = this.camera.localToWorld(velocity)
+				this.camera.position = this.camera.localToWorld(this.velocity.clone())
 			}
-			
+
 			if (this.rotation.length() < 0.1) {
 				this.rotation.clear()
 			} else {
@@ -254,8 +260,8 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			}
 
 			if (this.rotation.x || this.rotation.y || this.rotation.z) {
-				var rotation = new THREE.Vector3().copy(this.rotation)
-				this.camera.rotation.addSelf(rotation.multiplyScalar(Math.PI / 180))
+				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
+				this.camera.rotation.addSelf(rotation)
 			}
 		}
 	})
@@ -412,7 +418,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			// Perspective camera
 			this.views.push(new module.View.Perspective(_.extend(params, {
 				viewport: new THREE.Vector4(0, h, w, h),
-				position: new THREE.Vector3(256, 0, 256)
+				position: new THREE.Vector3(0, 0, 256)
 			})))
 
 			// Orthographic XZ (top-down)
