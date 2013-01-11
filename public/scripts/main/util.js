@@ -5,8 +5,8 @@
  * 
  * @author jdolan
  */
-define('Radiant.Util', [ 'THREE' ], function() {
-	
+define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
+
 	/*
 	 * Crutch up some things in THREE for convenience.
 	 */

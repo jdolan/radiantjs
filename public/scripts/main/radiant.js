@@ -11,7 +11,7 @@
  * The Radiant global is eventually populated through AMD via Require.js.
  */
 var Radiant = {
-	Version: 'RadiantJS 0.1',
+	Version: 'RadiantJS 0.1'
 }
 
 /*
@@ -26,7 +26,7 @@ require.config({
 		jQueryUI: 'lib/jquery-ui-1.9.2.custom.min',
 		THREE: 'lib/three-r54.min',
 		Underscore: 'lib/underscore-1.4.3.min',
-		
+
 		'Radiant.Controller': 'main/controller',
 		'Radiant.Event': 'main/event',
 		'Radiant.Material': 'main/material',
@@ -52,6 +52,6 @@ require.config({
 /*
  * Load the Main module and instantiate it.
  */
-require(['Radiant.Controller'], function() {
+require([ 'Radiant.Controller' ], function() {
 	window.radiant = new Radiant.Controller.Application({})
 })

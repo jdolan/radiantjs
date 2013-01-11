@@ -11,20 +11,23 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	var module = {}
 
 	/**
-	 * An individual preference.
-	 */
-	module.Preference = Backbone.Model.extend({
-		defaults: {
-			key: '',
-			value: ''
-		}
-	})
-
-	/**
 	 * A Collection of Preferences.
 	 */
-	module.Preferences = Backbone.Collection.extend({
-		model: module.Preference
+	module.Preferences = Backbone.Model.extend({
+		defaults: {
+			KeyForward: 'w',
+			KeyBack: 's',
+			KeyMoveLeft: 'a',
+			KeyMoveRight: 'd',
+			KeyMoveUp: 'd',
+			KeyMoveDown: 'c',
+			KeyLookUp: 'a',
+			KeyLookDown: 'z',
+			KeyLookLeft: ',',
+			KeyLookRight: '.',
+			KeySurfaceInspector: 'S',
+			KeyEntityInspector: 'n'
+		}
 	})
 
 	/**
@@ -55,7 +58,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk/*new THREE.MeshFaceMaterial()*/)
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk/*
+																					 * new
+																					 * THREE.MeshFaceMaterial()
+																					 */)
 		}
 	})
 
@@ -175,17 +181,19 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
 
 					if (++v % 3 == 0) {
-						material = Radiant.Material.Common.caulk
-
-						//brush.mesh.material.materials.push(material)
+						// material = Radiant.Material.Common.caulk
+						// brush.mesh.material.materials.push(material)
 
 						face = new THREE.Face3(v - 3, v - 2, v - 1)
-						face.materialIndex = v / 3
+						// face.materialIndex =
+						// brush.mesh.material.materials.length - 1
 
 						brush.geometry.faces.push(face)
 					}
 				}
 			}
+
+			// brush.geometry.mergeVertices()
 
 			return brush
 		},
@@ -218,7 +226,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 				}
 			}
 
-			console.debug(entity.toString())
+			// console.debug(entity.toString())
 
 			return entity
 		},
