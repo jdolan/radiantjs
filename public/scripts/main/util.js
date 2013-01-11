@@ -7,8 +7,42 @@
  */
 define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 
-	/*
-	 * Crutch up some things in THREE for convenience.
+	/**
+	 * Clamps the value to the specified bounds.
+	 * 
+	 * @param {Number} value The value.
+	 * @param {Number} min The lower bounds.
+	 * @param {Number} max The upper bounds.
+	 * 
+	 * @return {Number} The clamped value.
+	 */
+	Math.clamp = function(value, min, max) {
+		return Math.max(min, Math.min(value, max));
+	}
+	
+	/**
+	 * Sets all elements of this Vector2 to 0.
+	 */
+	THREE.Vector2.prototype.clear = function() {
+		this.x = this.y = 0
+	}
+	
+	/**
+	 * @return {String} A formatted String representation of this Vector2.
+	 */
+	THREE.Vector2.prototype.toString = function() {
+		return '(' + this.x + ' ' + this.y + ')'
+	}
+	
+	/**
+	 * Sets all elements of this Vector3 to 0.
+	 */
+	THREE.Vector3.prototype.clear = function() {
+		this.x = this.y = this.z = 0
+	}
+	
+	/**
+	 * @return {String} A formatted String representation of this Vector3.
 	 */
 	THREE.Vector3.prototype.toString = function() {
 		return '(' + this.x + ' ' + this.y + ' ' + this.z + ')'

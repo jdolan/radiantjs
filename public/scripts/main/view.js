@@ -161,8 +161,8 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 
 			this.scene.add(this.camera)
 
-			this.translate = new THREE.Vector3()
-			this.rotate = new THREE.Vector3()
+			this.velocity = new THREE.Vector3()
+			this.rotation = new THREE.Vector3()
 
 			this.freelook = false
 			this.lastMousemove = new THREE.Vector2()
@@ -174,30 +174,30 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 				var prefs = self.layout.application.preferences
 
 				if (k == prefs.get('KeyForward')) {
-					self.translate.z--
+					self.velocity.z--
 				} else if (k == prefs.get('KeyBack')) {
-					self.translate.z++
+					self.velocity.z++
 				}
 
 				if (self.freelook) {
 					if (k == prefs.get('KeyMoveLeft')) {
-						self.translate.x--
+						self.velocity.x--
 					} else if (k == prefs.get('KeyMoveRight')) {
-						self.translate.x++
+						self.velocity.x++
 					}
 				} else {
 					if (k == prefs.get('KeyMoveUp')) {
-						self.translate.y++
+						self.velocity.y++
 					} else if (k == prefs.get('KeyMoveDown')) {
-						self.translate.y--
+						self.velocity.y--
 					} else if (k == prefs.get('KeyLookUp')) {
-						self.rotate.x++
+						self.rotation.x++
 					} else if (k == prefs.get('KeyLookDown')) {
-						self.rotate.x--
+						self.rotation.x--
 					} else if (k == prefs.get('KeyLookLeft')) {
-						self.rotate.y++
+						self.rotation.y++
 					} else if (k == prefs.get('KeyLookRight')) {
-						self.rotate.y--
+						self.rotation.y--
 					}
 				}
 			})
@@ -205,8 +205,8 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			this.on('mousemove', function(e) {
 				if (self.freelook) {
 					var s = self.layout.application.preferences.get('FreelookSensitivity')
-					self.rotate.y += (e.screenX - self.lastMousemove.x) * s
-					self.rotate.x += (e.screenY - self.lastMousemove.y) * s
+					self.rotation.y += (e.screenX - self.lastMousemove.x) * s
+					self.rotation.x += (e.screenY - self.lastMousemove.y) * s
 					self.lastMousemove.x = e.screenX
 					self.lastMousemove.y = e.screenY
 				}
@@ -234,16 +234,28 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 */
 		update: function(delta) {
 
-			if (this.translate.x || this.translate.y || this.translate.z) {
-				this.translate.multiplyScalar(delta >> 1)
-				this.camera.position = this.camera.localToWorld(this.translate)
-				this.translate.x = this.translate.y = this.translate.z = 0
+			var scale = 16 / delta
+
+			if (this.velocity.length() < 0.1) {
+				this.velocity.clear()
+			} else {
+				this.velocity.multiplyScalar(0.95 * scale)
 			}
 
-			if (this.rotate.x || this.rotate.y || this.rotate.z) {
-				this.rotate.multiplyScalar(delta * Math.PI / 180)
-				this.camera.rotation.addSelf(this.rotate)
-				this.rotate.x = this.rotate.y = this.rotate.z = 0
+			if (this.velocity.x || this.velocity.y || this.velocity.z) {
+				var velocity = new THREE.Vector3().copy(this.velocity)
+				this.camera.position = this.camera.localToWorld(velocity)
+			}
+			
+			if (this.rotation.length() < 0.1) {
+				this.rotation.clear()
+			} else {
+				this.rotation.multiplyScalar(0.95 * scale)
+			}
+
+			if (this.rotation.x || this.rotation.y || this.rotation.z) {
+				var rotation = new THREE.Vector3().copy(this.rotation)
+				this.camera.rotation.addSelf(rotation.multiplyScalar(Math.PI / 180))
 			}
 		}
 	})
