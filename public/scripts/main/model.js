@@ -183,6 +183,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					y = parseFloat(this.nextToken())
 					z = parseFloat(this.nextToken())
 
+					// Put Z facing "up"
 					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
 
 					if (++v % 3 == 0) {
@@ -198,7 +199,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 				}
 			}
 
-			// brush.geometry.mergeVertices()
+			brush.geometry.mergeVertices()
 
 			return brush
 		},
@@ -267,22 +268,24 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	module.MapFactory = {
 
 		/**
-		 * Loads a Map from the specified .map file.
+		 * Loads a Map from the specified File or URI.
 		 * 
-		 * @param {File} file The .map file.
-		 * @param {Function} callback A callback taking the new Map.
-		 * 
-		 * @return {Radiant.Model.Map} The Map.
+		 * @param {File|String} resource The .map File or URI.
+		 * @param {function} handler A success handler taking the new Map.
 		 */
-		load: function(file, callback) {
-			if (file) {
+		load: function(resource, handler) {
+			if (resource instanceof File) {
 				var reader = new FileReader()
 				reader.onload = function(e) {
-					callback(new Parser(e.target.result).parse())
+					handler(new Parser(e.target.result).parse())
 				}
-				reader.readAsText(file)
+				reader.readAsText(resource)
+			} else if (resource instanceof String) {
+				$.get(resource, function(data) {
+					handler(new Parser(data).parse())
+				})
 			} else {
-				console.error('No file specified')
+				console.error('Invalid file specified', file)
 			}
 		}
 	}

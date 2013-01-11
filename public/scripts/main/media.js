@@ -21,35 +21,36 @@ define('Radiant.Media', [ 'Radiant.Event', 'Radiant.Util' ], function() {
 	var cache = []
 
 	/**
-	 * Loads the asset by the specified URL and type.
+	 * Loads the asset by the specified name and type.
 	 * 
-	 * @param {String} url The asset URL.
-	 * @param {int} type The asset type.
+	 * @param {String} name The asset name.
+	 * @param {Number} type The asset type.
 	 * @param {Boolean} reload Force reload.
 	 * 
 	 * @return {Object} The asset.
 	 */
-	module.load = function(url, type, reload) {
-
+	module.load = function(name, type, reload) {
+		
+		var key = '/media/' + name
 		var asset = null
 
-		if (cache[url] && !reload) {
-			asset = cache[url]
+		if (cache[key] && !reload) {
+			asset = cache[key]
 		} else {
 			switch (type) {
 
 			case module.Material:
-				asset = THREE.ImageUtils.loadTexture(url)
+				asset = THREE.ImageUtils.loadTexture(key)
 				asset.wrapS = asset.wrapT = THREE.RepeatWrapping
 				break
 
 			default:
-				console.error('Failed to load "' + url + '" (' + type + ')')
+				console.error('Failed to load "' + key + '" (' + type + ')')
 				break
 			}
 
 			if (asset) {
-				cache[url] = asset
+				cache[key] = asset
 			}
 		}
 

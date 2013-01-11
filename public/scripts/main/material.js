@@ -35,12 +35,12 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	/**
 	 * A convenience function for loading materials.
 	 * 
-	 * @param {String} The image URL.
+	 * @param {String} name The material name (e.g. torn/floor1.jpg).
 	 * 
 	 * @return {THREE.Texture} The texture.
 	 */
-	module.load = function(url) {
-		return Radiant.Media.load(url, Radiant.Media.Material)
+	module.load = function(name) {
+		return Radiant.Media.load('textures/' + name, Radiant.Media.Material)
 	}
 
 	/**
@@ -48,28 +48,28 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 */
 	module.Common = {
 		caulk: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/caulk.png')
+			map: module.load('common/caulk.png')
 		}),
 		clip: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/clip.png')
+			map: module.load('common/clip.png')
 		}),
 		hint: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/hint.png')
+			map: module.load('common/hint.png')
 		}),
 		ladder: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/ladder.png')
+			map: module.load('common/ladder.png')
 		}),
 		missing: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/missing.png')
+			map: module.load('common/missing.png')
 		}),
 		origin: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/origin.png')
+			map: module.load('common/origin.png')
 		}),
 		sky: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/sky.png')
+			map: module.load('common/sky.png')
 		}),
 		trigger: new THREE.MeshBasicMaterial({
-			map: module.load('images/materials/common/trigger.png')
+			map: module.load('common/trigger.png')
 		})
 	}
 

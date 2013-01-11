@@ -79,9 +79,22 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
+
 			var self = this
 			$('a[href=#Open]', this.menu).click(function(e) {
-				$('#dialog').load(T('file-open')).dialog({
+
+				// Load the template into the dialog
+				$('#dialog').load(T('file-open'), function(content) {
+					var dialog = this
+
+					// Bind the sample map links
+					$('#file-open-sample-maps li a', this).click(function(c) {
+						self.application.loadMap(new String(this.href))
+						$(dialog).dialog('close')
+						c.preventDefault()
+						return false
+					})
+				}).dialog({
 					title: 'Select a .map file..',
 					buttons: {
 						Open: function() {
@@ -121,21 +134,26 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		constructor: module.Application,
 
 		/**
-		 * Loads a Radiant.Model.Map from the specified File. Triggers the
-		 * <code>onLoadMap</code> Event on success.
+		 * Loads a Map from the specified File or URI.
 		 * 
-		 * @param {File} The .map file.
+		 * Triggers:
+		 * <ul>
+		 * <li><code>Radiant.Event.Map.Unload</code></li>
+		 * <li><code>Radiant.Event.Map.Load</code></li>
+		 * </ul>
+		 * 
+		 * @param {File|String} The .map file or URI.
 		 */
 		loadMap: function(file) {
-			
+
 			$(this).trigger(Radiant.Event.Map.Unload, this.map)
 
-			var callback = function(map) {
+			var handler = function(map) {
 				this.map = map
 				$(this).trigger(Radiant.Event.Map.Load, this.map)
 			}
 
-			Radiant.Model.MapFactory.load(file, callback.bind(this))
+			Radiant.Model.MapFactory.load(file, handler.bind(this))
 		}
 	})
 

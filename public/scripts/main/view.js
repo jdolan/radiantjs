@@ -71,8 +71,8 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 * events are only handled if they are received by the <tt>body</tt>
 		 * element.
 		 * 
-		 * @param {String} event The event type.
-		 * @param {Function} handler The event handler.
+		 * @param {String} event The event name.
+		 * @param {function(jQuery.Event)} handler The event handler.
 		 */
 		on: function(event, handler) {
 
