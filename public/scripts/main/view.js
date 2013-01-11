@@ -41,7 +41,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		/**
 		 * Updates this View. This is called once per frame. To be overridden.
 		 * 
-		 * @param {long} delta The delta (milliseconds) since the last frame.
+		 * @param {Number} delta The length of the frame (milliseconds / 16).
 		 */
 		update: function(delta) {
 			// to be overridden
@@ -50,10 +50,12 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		/**
 		 * Renders this view. The underlying implementation is given an
 		 * opportunity to act on the frame via <code>update</code>.
+		 * 
+		 * @param {Number} time The current time in milliseconds.
 		 */
 		render: function(time) {
 
-			this.update(time - this.time)
+			this.update((time - this.time) / 16)
 			this.time = time
 
 			var v = this.viewport
@@ -129,6 +131,15 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			this.camera.lookAt(new THREE.Vector3())
 
 			this.scene.add(this.camera)
+		},
+
+		/**
+		 * Updates this View. This is called once per frame.
+		 * 
+		 * @param {Number} delta The length of the frame (milliseconds / 16).
+		 */
+		update: function(delta) {
+
 		}
 	})
 
@@ -205,15 +216,15 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			this.on('mousemove', function(e) {
 				if (self.freelook) {
 					var s = self.layout.application.preferences.get('FreelookSensitivity')
-					
+
 					self.rotation.y -= (e.screenX - self.lastMousemove.x) * s
-					
+
 					if (self.layout.application.preferences.get('FreelookInvert')) {
 						self.rotation.x += (e.screenY - self.lastMousemove.y) * s
 					} else {
 						self.rotation.x -= (e.screenY - self.lastMousemove.y) * s
 					}
-					
+
 					self.lastMousemove.x = e.screenX
 					self.lastMousemove.y = e.screenY
 				}
@@ -237,26 +248,24 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		/**
 		 * Updates this View. This is called once per frame.
 		 * 
-		 * @param {long} delta The delta (milliseconds) since the last frame.
+		 * @param {Number} delta The length of the frame (milliseconds / 16).
 		 */
 		update: function(delta) {
-
-			var scale = 16 / delta
 
 			if (this.velocity.length() < 0.1) {
 				this.velocity.clear()
 			} else {
-				this.velocity.multiplyScalar(0.95 * scale)
+				this.velocity.multiplyScalar(0.95 * delta)
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
 				this.camera.position = this.camera.localToWorld(this.velocity.clone())
 			}
 
-			if (this.rotation.length() < 0.1) {
+			if (this.rotation.length() < 0.15) {
 				this.rotation.clear()
 			} else {
-				this.rotation.multiplyScalar(0.95 * scale)
+				this.rotation.multiplyScalar(0.85 * delta)
 			}
 
 			if (this.rotation.x || this.rotation.y || this.rotation.z) {
@@ -315,7 +324,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		},
 
 		/**
-		 * Traps Radiant.Event and begins the rendering loop.
+		 * Traps Radiant.Event and enters the rendering loop.
 		 */
 		trapEvents: function() {
 
@@ -333,7 +342,9 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 
 		/**
 		 * Renders all Views in this Layout. The Renderer is manually cleared
-		 * just once before the Views are repainted.
+		 * once before the Views are repainted.
+		 * 
+		 * @param {Number} time The current time in milliseconds.
 		 */
 		render: function(time) {
 
@@ -418,7 +429,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			// Perspective camera
 			this.views.push(new module.View.Perspective(_.extend(params, {
 				viewport: new THREE.Vector4(0, h, w, h),
-				position: new THREE.Vector3(0, 0, 256)
+				position: new THREE.Vector3(256, 256, 256)
 			})))
 
 			// Orthographic XZ (top-down)

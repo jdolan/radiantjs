@@ -25,6 +25,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 	 */
 	THREE.Vector2.prototype.clear = function() {
 		this.x = this.y = 0
+		return this
 	}
 	
 	/**
@@ -39,6 +40,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 	 */
 	THREE.Vector3.prototype.clear = function() {
 		this.x = this.y = this.z = 0
+		return this
 	}
 	
 	/**
