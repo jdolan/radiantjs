@@ -26,7 +26,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 			KeyLookLeft: ',',
 			KeyLookRight: '.',
 			KeySurfaceInspector: 'S',
-			KeyEntityInspector: 'n'
+			KeyEntityInspector: 'n',
+			FreelookSensitivity: 0.1
 		}
 	})
 

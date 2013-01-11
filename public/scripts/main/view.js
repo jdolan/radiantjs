@@ -73,7 +73,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 */
 		on: function(event, handler) {
 
-			if (/mouse.*/.test(event)) {
+			if (/mouse(up|down)/.test(event)) {
 				var self = this
 				$(self.renderer.domElement).on(event, function(e) {
 					var x = e.offsetX, y = e.target.height - e.offsetY
@@ -90,7 +90,9 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 					}
 				})
 			} else {
-				return handler(e)
+				$(document).on(event, function(e) {
+					return handler(e)
+				})
 			}
 		}
 	})
@@ -163,6 +165,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			this.rotate = new THREE.Vector3()
 
 			this.freelook = false
+			this.lastMousemove = new THREE.Vector2()
 
 			var self = this
 
@@ -170,12 +173,14 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 				var k = String.fromCharCode(e.which)
 				var prefs = self.layout.application.preferences
 
+				if (k == prefs.get('KeyForward')) {
+					self.translate.z--
+				} else if (k == prefs.get('KeyBack')) {
+					self.translate.z++
+				}
+
 				if (self.freelook) {
-					if (k == prefs.get('KeyForward')) {
-						self.translate.z--
-					} else if (k == prefs.get('KeyBack')) {
-						self.translate.z++
-					} else if (k == prefs.get('KeyMoveLeft')) {
+					if (k == prefs.get('KeyMoveLeft')) {
 						self.translate.x--
 					} else if (k == prefs.get('KeyMoveRight')) {
 						self.translate.x++
@@ -197,9 +202,23 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 				}
 			})
 
+			this.on('mousemove', function(e) {
+				if (self.freelook) {
+					var s = self.layout.application.preferences.get('FreelookSensitivity')
+					self.rotate.y += (e.screenX - self.lastMousemove.x) * s
+					self.rotate.x += (e.screenY - self.lastMousemove.y) * s
+					self.lastMousemove.x = e.screenX
+					self.lastMousemove.y = e.screenY
+				}
+			})
+
 			this.on('mousedown', function(e) {
 				if (e.which == 3) {
 					self.freelook = !self.freelook
+					if (self.freelook) {
+						self.lastMousemove.x = e.screenX
+						self.lastMousemove.y = e.screenY
+					}
 				} else if (e.which == 1 && e.shiftKey) {
 					console.debug('select brush')
 				} else if (e.which == 1 && e.ctrlKey) {
@@ -214,14 +233,18 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 * @param {long} delta The delta (milliseconds) since the last frame.
 		 */
 		update: function(delta) {
-			
+
 			if (this.translate.x || this.translate.y || this.translate.z) {
-				this.translate = this.translate.multiplyScalar(delta >> 1)
+				this.translate.multiplyScalar(delta >> 1)
 				this.camera.position = this.camera.localToWorld(this.translate)
-				this.translate = new THREE.Vector3()
+				this.translate.x = this.translate.y = this.translate.z = 0
 			}
 
-			this.rotate = new THREE.Vector3()
+			if (this.rotate.x || this.rotate.y || this.rotate.z) {
+				this.rotate.multiplyScalar(delta * Math.PI / 180)
+				this.camera.rotation.addSelf(this.rotate)
+				this.rotate.x = this.rotate.y = this.rotate.z = 0
+			}
 		}
 	})
 
@@ -377,7 +400,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			// Perspective camera
 			this.views.push(new module.View.Perspective(_.extend(params, {
 				viewport: new THREE.Vector4(0, h, w, h),
-				position: new THREE.Vector3(256, 256, 256)
+				position: new THREE.Vector3(256, 0, 256)
 			})))
 
 			// Orthographic XZ (top-down)
