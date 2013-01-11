@@ -25,10 +25,13 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 			KeyLookDown: 'z',
 			KeyLookLeft: ',',
 			KeyLookRight: '.',
+			KeyZoomIn: '-',
+			KeyZoomOut: '+',
 			KeySurfaceInspector: 'S',
 			KeyEntityInspector: 'n',
 			FreelookSensitivity: 0.1,
-			FreelookInvert: false
+			FreelookInvert: false,
+			FollowPerspective: true
 		}
 	})
 

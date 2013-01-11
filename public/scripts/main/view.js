@@ -22,6 +22,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		this.viewport = params.viewport
 		this.scene = params.scene
 		this.time = new Date().value
+		this.aspect = this.viewport.z / this.viewport.w
 
 		this.initialize(params)
 	}
@@ -120,17 +121,33 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
+			this.target = params.target
+			this.offset = params.position
 
-			this.zoom = params.zoom || 1
+			this.fov = params.fov || 1024
+			this.lastFov = this.fov
 
-			var w = 1024 * this.zoom / 2
-			var h = w / (this.viewport.z / this.viewport.w)
+			var w = this.fov
+			var h = w / this.aspect
 
-			this.camera = new THREE.OrthographicCamera(-w, w, h, -h, 0.1, 16384)
+			this.camera = new THREE.OrthographicCamera(-w, w, h, -h, -16384, 16384)
 			this.camera.position.copy(params.position)
 			this.camera.lookAt(new THREE.Vector3())
 
 			this.scene.add(this.camera)
+
+			var self = this
+
+			this.on('keypress', function(e) {
+				var k = String.fromCharCode(e.which)
+				var prefs = self.layout.application.preferences
+
+				if (k == prefs.get('KeyZoomIn')) {
+					self.fov = self.fov << 1
+				} else if (k == prefs.get('KeyZoomOut')) {
+					self.fov = self.fov >> 1
+				}
+			})
 		},
 
 		/**
@@ -140,6 +157,27 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 */
 		update: function(delta) {
 
+			if (this.target) {
+				if (this.layout.application.preferences.get('FollowPerspective')) {
+					this.camera.position.add(this.target.position, this.offset)
+				}
+			}
+
+			this.fov = Math.clamp(this.fov, 128, 8192)
+			if (this.fov != this.lastFov) {
+
+				var w = this.fov
+				var h = w / this.aspect
+
+				this.camera.left = -w
+				this.camera.right = w
+				this.camera.top = h
+				this.camera.bottom = -h
+
+				this.camera.updateProjectionMatrix()
+
+				this.lastFov = this.fov
+			}
 		}
 	})
 
@@ -164,9 +202,10 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
-			var aspect = this.viewport.z / this.viewport.w
 
-			this.camera = new THREE.PerspectiveCamera(50.0, aspect, 0.1, 4096.0)
+			this.fov = params.fov || 50
+
+			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096.0)
 			this.camera.position.copy(params.position)
 			this.camera.lookAt(new THREE.Vector3())
 
@@ -252,10 +291,10 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 */
 		update: function(delta) {
 
-			if (this.velocity.length() < 0.1) {
+			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
 			} else {
-				this.velocity.multiplyScalar(0.95 * delta)
+				this.velocity.multiplyScalar(0.85 * delta)
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
@@ -432,22 +471,26 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 				position: new THREE.Vector3(256, 256, 256)
 			})))
 
+			_.extend(params, {
+				target: this.views[0].camera
+			})
+
 			// Orthographic XZ (top-down)
 			this.views.push(new module.View.Orthographic(_.extend(params, {
 				viewport: new THREE.Vector4(w, h, w, h),
-				position: new THREE.Vector3(0, 256, 0)
+				position: new THREE.Vector3(0, -1, 0)
 			})))
 
 			// Orthographic ZY (left)
 			this.views.push(new module.View.Orthographic(_.extend(params, {
 				viewport: new THREE.Vector4(0, 0, w, h),
-				position: new THREE.Vector3(256, 0, 0)
+				position: new THREE.Vector3(-1, 0, 0)
 			})))
 
 			// Orthographic XY (back)
 			this.views.push(new module.View.Orthographic(_.extend(params, {
 				viewport: new THREE.Vector4(w, 0, w, h),
-				position: new THREE.Vector3(0, 0, 256)
+				position: new THREE.Vector3(0, 0, -1)
 			})))
 
 			// cube time
