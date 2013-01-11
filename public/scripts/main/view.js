@@ -1,9 +1,8 @@
 'use strict';
 
 /**
- * They Layout module is responsible for rendering all Views (2D and 3D) of a
- * <code>Radiant.Map.Map</code>. A single WebGL canvas with multiple cameras
- * and viewports are used.
+ * The Layout module is responsible for rendering all 2D and 3D views. A single
+ * WebGL canvas with multiple cameras and viewports is used.
  * 
  * @author jdolan
  */
@@ -173,9 +172,9 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 
 				if (self.freelook) {
 					if (k == prefs.get('KeyForward')) {
-						self.translate.z++
-					} else if (k == prefs.get('KeyBack')) {
 						self.translate.z--
+					} else if (k == prefs.get('KeyBack')) {
+						self.translate.z++
 					} else if (k == prefs.get('KeyMoveLeft')) {
 						self.translate.x--
 					} else if (k == prefs.get('KeyMoveRight')) {
@@ -215,11 +214,13 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		 * @param {long} delta The delta (milliseconds) since the last frame.
 		 */
 		update: function(delta) {
-			if (this.translate.x || this.translate.y || this.translate.z)
-				console.log('translate ' + this.translate)
-			if (this.rotate.x || this.rotate.y || this.rotate.z)
-				console.log('rotate ' + this.rotate)
-			this.translate = new THREE.Vector3()
+			
+			if (this.translate.x || this.translate.y || this.translate.z) {
+				this.translate = this.translate.multiplyScalar(delta >> 1)
+				this.camera.position = this.camera.localToWorld(this.translate)
+				this.translate = new THREE.Vector3()
+			}
+
 			this.rotate = new THREE.Vector3()
 		}
 	})
