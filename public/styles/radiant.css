@@ -1,17 +1,13 @@
 @import url('lib/meyer-reset-2.0.min.css');
 
-@import url('lib/ui-lightness/jquery-ui-1.9.2.custom.min.css');
-
-#dialog {
-	display: none;
-}
+@import url('http://fonts.googleapis.com/css?family=Open Sans&subset=latin');
 
 #layout {
 	bottom: 0;
 	left: 0;
-	right: 0;
-	top: 4em;
 	position: absolute;
+	right: 0;
+	top: 0;
 }
 
 #layout canvas {
@@ -20,35 +16,102 @@
 }
 
 #toolbar {
-	background: #ccc; height : 4em;
 	left: 0;
 	top: 0;
 	position: absolute;
 	right: 0;
-	height: 4em;
+	z-index: 1
 }
 
-#toolbar>.ui-menu:after {
-	content: ".";
-	display: block;
-	clear: both;
-	visibility: hidden;
-	line-height: 0;
-	height: 0;
+button {
+	background-color: rgba(255, 255, 255, 0.15);
+	border: 1px solid #333;
+	border-radius: 0.33em;
 }
 
-#toolbar>.ui-menu>.ui-menu-item {
-	display: inline-block;
-	float: left;
-	margin: 0;
-	padding: 0 0 0 1em;
-	width: auto;
-}
-
-.ui-menu .ui-menu-icon {
+div.modal {
+	background-color: rgba(0, 0, 0, 0.666);
+	border-radius: 1em;
+	box-shadow: 0px 0px 0.33em 0.33em rgba(0, 0, 0, 0.15);
 	display: none;
+	margin: auto;
+	padding: 1em;
+	position: absolute;
+	top: 8em;
+	z-index: 1;
+}
+
+h2 {
+	font-weight: bold;
+	margin: 0.5em 0;
+}
+
+input {
+	background: #eee;
+	border-radius: 0.33em;
+	color: #444;
+	height: 14px;
+	margin: 0.33em;
+}
+
+input[type=file] {
+	background: inherit;
+	height: 20px;
+}
+
+ul.menu {
+	background-color: rgba(0, 0, 0, 0.666);
+	border-bottom: 1px solid #333;
+	line-height: 1.5em;
+	width: 100%;
+}
+
+ul.menu * {
+	z-index: 1;
+}
+
+ul.menu input {
+	background: #eee;
+	color: #444;
+}
+
+ul.menu>li {
+	display: inline-block;
+}
+
+ul.menu li a {
+	display: inline-block;
+	margin-left: 1px;
+	padding: 0 1em 0 0.5em;
+	text-decoration: none;
+}
+
+ul.menu li a:hover,ul.menu li a.active {
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+ul.menu li ul {
+	background-color: rgba(0, 0, 0, 0.666);
+	border: 1px solid #333;
+	border-radius: 0 0 0.33em 0.33em;
+	border-top: none;
+	box-shadow: 0px 0px 0.33em 0.33em rgba(0, 0, 0, 0.15);
+	display: none;
+	position: absolute;
+}
+
+ul.menu li ul li a {
+	display: block;
+	min-width: 10em;
+}
+
+ul.menu li ul li a:last {
+	border-radius: 0 0 0.33em 0.33em;
 }
 
 html * {
-	font-size: 14px;
+	color: white;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 12px;
+	line-height: 20px;
 }

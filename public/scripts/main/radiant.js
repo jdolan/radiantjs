@@ -23,7 +23,6 @@ require.config({
 	paths: {
 		Backbone: 'lib/backbone-0.9.9.min',
 		jQuery: 'lib/jquery-1.8.3.min',
-		jQueryUI: 'lib/jquery-ui-1.9.2.custom.min',
 		THREE: 'lib/three-r54.min',
 		Underscore: 'lib/underscore-1.4.3.min',
 
@@ -32,6 +31,7 @@ require.config({
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
 		'Radiant.Model': 'main/model',
+		'Radiant.Ui': 'main/ui',
 		'Radiant.Util': 'main/util',
 		'Radiant.View': 'main/view'
 	},
@@ -40,9 +40,6 @@ require.config({
 		Backbone: {
 			deps: [ 'Underscore' ],
 			exports: 'Backbone'
-		},
-		jQueryUI: {
-			deps: [ 'jQuery' ]
 		}
 	},
 

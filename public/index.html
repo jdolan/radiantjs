@@ -7,10 +7,54 @@
 	src="scripts/lib/require-2.1.2.min.js"></script>
 </head>
 <body>
-	<section id="toolbar"></section>
-	<section id="layout">
+	<div id="toolbar">
+		<ul id="main-menu" class="menu">
+			<li><a href="#JSRadiant">JSRadiant</a>
+				<ul>
+					<li><a href="#About">About</a></li>
+					<li><a href="#Preferences">Preferences</a></li>
+				</ul></li>
+			<li><a href="#File">File</a>
+				<ul>
+					<li><a href="#Open">Open File..</a></li>
+					<li><a href="#Save">Save</a></li>
+					<li><a href="#Close">Close</a></li>
+				</ul></li>
+			<li><a href="#Edit">Edit</a>
+				<ul>
+					<li><a href="#Copy">Copy</a></li>
+					<li><a href="#Paste">Paste</a></li>
+				</ul>
+			</li>
+			<li><a href="#Help">Help</a>
+				<ul>
+					<li><form id="help-search">
+							<input type="text" name="Search" value="Search.." />
+						</form>
+					</li>
+					<li><a href="#Manual">Manual</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div id="open-file-modal" class="modal">
+		<h2>Select a .map file..</h2>
+		<form id="file-open">
+			<input type="file" name="file" />
+			<button name="Cancel">Cancel</button>
+			<button name="Open">Open</button>
+		</form>
+		<hr />
+		<h2>Sample maps</h2>
+		<ul id="sample-maps">
+			<li><a href="media/maps/construct.map">The Construct</a>
+			</li>
+			<li><a href="media/maps/torn.map">Torn Glory by Cardo</a>
+			</li>
+		</ul>
+	</div>
+	<div id="layout">
 		<canvas></canvas>
-	</section>
-	<section id="dialog"></section>
+	</div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * This module defines custom events.
+ * The Event module defines custom events.
  */
 define('Radiant.Event', [], function() {
 	

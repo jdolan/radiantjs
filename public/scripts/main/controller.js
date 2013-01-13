@@ -1,76 +1,74 @@
 'use strict';
 
 /**
- * This is the Controller module of the Radiant MVC stack.
+ * Controller module of the Radiant MVC stack.
  * 
  * @author jdolan
  */
-define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], function() {
+define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 
 	var module = {}
 
 	/**
-	 * Returns the URL of the specified template.
-	 * 
-	 * @param {String} template The template name (e.g. 'main-menu').
-	 * 
-	 * @return {String} The URL of the template.
-	 */
-	var T = function(template) {
-		return 'templates/' + template + '.html'
-	}
-
-	/**
-	 * The base Menu type.
+	 * The <em>Open File..</em> Modal.
 	 * 
 	 * @constructor
+	 * @augments Radiant.Ui.Modal
 	 * 
 	 * @param {Object} params The initialization parameters.
 	 */
-	module.Menu = function(params) {
-
-		var self = this
-
-		this.application = params.application
-		this.container = params.container
-		this.template = params.template
-
-		this.container.load(this.template, function() {
-			self.menu = $('ul', this).menu()
-			self.initialize(params)
-		})
+	module.OpenFileModal = function(params) {
+		
+		params.modal = params.modal || $('#open-file-modal')
+		
+		Radiant.Ui.Modal.call(this, params)
 	}
 
-	_.extend(module.Menu.prototype, {
-		constructor: module.Menu,
-
+	$.extend(module.OpenFileModal.prototype, Radiant.Ui.Modal.prototype, {
+		constructor: module.OpenFileModal,
+		
 		/**
-		 * Initializes this Menu. To be overridden.
+		 * Initializes this OpenFileModal.
 		 * 
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
-			// to be overridden
+			var self = this
+			
+			$(':button[name=Cancel]', this.modal).click(function(e) {
+				self.hide()
+			})
+			
+			$(':button[name=Open]', this.modal).click(function(e) {
+				var file = $('file', this.modal).files[0]
+				self.application.loadMap(file)
+				self.hide()
+			})
+			
+			$('#sample-maps > li > a', this.modal).click(function(c) {
+				c.preventDefault()
+				self.application.loadMap(new String(this.href))
+				self.hide()
+			})
 		}
 	})
-
+	
 	/**
-	 * The main menu.
+	 * The main Menu.
 	 * 
-	 * @augments Menu
 	 * @constructor
+	 * @augments Radiant.Ui.Menu
 	 * 
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.MainMenu = function(params) {
-
-		params.container = params.container || $('#toolbar')
-		params.template = params.template || T('main-menu')
-
-		module.Menu.call(this, params)
+		
+		params.menu = params.menu || $('#main-menu')
+		
+		Radiant.Ui.Menu.call(this, params)
 	}
 
-	_.extend(module.MainMenu.prototype, module.Menu.prototype, {
+	$.extend(module.MainMenu.prototype, Radiant.Ui.Menu.prototype, {
 		constructor: module.MainMenu,
 
 		/**
@@ -80,33 +78,15 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		 */
 		initialize: function(params) {
 
+			this.openFileModal = new module.OpenFileModal(params)
+
 			var self = this
 			$('a[href=#Open]', this.menu).click(function(e) {
-
-				// Load the template into the dialog
-				$('#dialog').load(T('file-open'), function(content) {
-					var dialog = this
-
-					// Bind the sample map links
-					$('#file-open-sample-maps li a', this).click(function(c) {
-						self.application.loadMap(new String(this.href))
-						$(dialog).dialog('close')
-						c.preventDefault()
-						return false
-					})
-				}).dialog({
-					title: 'Select a .map file..',
-					buttons: {
-						Open: function() {
-							var file = $('#file-open-file')[0].files[0]
-							self.application.loadMap(file)
-							$(this).dialog('close')
-						},
-						Cancel: function() {
-							$(this).dialog('close')
-						}
-					}
-				})
+				self.openFileModal.show()
+			})
+			
+			$('a[href=#Close]', this.menu).click(function(e) {
+				self.application.loadMap(null)
 			})
 		}
 	})
@@ -125,12 +105,12 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 		this.preferences = new Radiant.Model.Preferences(params)
 		this.layout = new Radiant.View.Classic(params)
 		this.menu = new module.MainMenu(params)
-		this.map = new Radiant.Model.Map(params)
+		this.map = new Radiant.Model.Map()
 
 		console.log(Radiant.Version)
 	}
 
-	_.extend(module.Application.prototype, {
+	$.extend(module.Application.prototype, {
 		constructor: module.Application,
 
 		/**
@@ -148,12 +128,16 @@ define('Radiant.Controller', [ 'jQueryUI', 'Radiant.Model', 'Radiant.View' ], fu
 
 			$(this).trigger(Radiant.Event.Map.Unload, this.map)
 
-			var handler = function(map) {
-				this.map = map
-				$(this).trigger(Radiant.Event.Map.Load, this.map)
+			if (file) {
+				var handler = function(map) {
+					this.map = map
+					$(this).trigger(Radiant.Event.Map.Load, this.map)
+				}
+	
+				Radiant.Model.MapFactory.load(file, handler.bind(this))
+			} else {
+				this.map = new Radiant.Model.Map()
 			}
-
-			Radiant.Model.MapFactory.load(file, handler.bind(this))
 		}
 	})
 

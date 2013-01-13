@@ -6,7 +6,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.View', [ 'Radiant.Material' ], function() {
+define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 	var module = {}
 
@@ -27,7 +27,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		this.initialize(params)
 	}
 
-	_.extend(module.View.prototype, {
+	$.extend(module.View.prototype, {
 		constructor: module.View,
 
 		/**
@@ -112,7 +112,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		module.View.call(this, params)
 	}
 
-	_.extend(module.View.Orthographic.prototype, module.View.prototype, {
+	$.extend(module.View.Orthographic.prototype, module.View.prototype, {
 		constructor: module.View.Orthographic,
 
 		/**
@@ -193,7 +193,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		module.View.call(this, params)
 	}
 
-	_.extend(module.View.Perspective.prototype, module.View.prototype, {
+	$.extend(module.View.Perspective.prototype, module.View.prototype, {
 		constructor: module.View.Perspective,
 
 		/**
@@ -350,7 +350,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		}
 	}
 
-	_.extend(Layout.prototype, {
+	$.extend(Layout.prototype, {
 		constructor: Layout,
 
 		/**
@@ -446,7 +446,7 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 		Layout.call(this, params)
 	}
 
-	_.extend(module.Classic.prototype, Layout.prototype, {
+	$.extend(module.Classic.prototype, Layout.prototype, {
 		constructor: module.Classic,
 
 		/**
@@ -459,36 +459,36 @@ define('Radiant.View', [ 'Radiant.Material' ], function() {
 			var w = this.width / 2
 			var h = this.height / 2
 
-			_.extend(params, {
+			$.extend(params, {
 				layout: this,
 				renderer: this.renderer,
 				scene: this.scene
 			})
 
 			// Perspective camera
-			this.views.push(new module.View.Perspective(_.extend(params, {
+			this.views.push(new module.View.Perspective($.extend(params, {
 				viewport: new THREE.Vector4(0, h, w, h),
 				position: new THREE.Vector3(256, 256, 256)
 			})))
 
-			_.extend(params, {
+			$.extend(params, {
 				target: this.views[0].camera
 			})
 
 			// Orthographic XZ (top-down)
-			this.views.push(new module.View.Orthographic(_.extend(params, {
+			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, h, w, h),
 				position: new THREE.Vector3(0, -1, 0)
 			})))
 
 			// Orthographic ZY (left)
-			this.views.push(new module.View.Orthographic(_.extend(params, {
+			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(0, 0, w, h),
 				position: new THREE.Vector3(-1, 0, 0)
 			})))
 
 			// Orthographic XY (back)
-			this.views.push(new module.View.Orthographic(_.extend(params, {
+			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, 0, w, h),
 				position: new THREE.Vector3(0, 0, -1)
 			})))

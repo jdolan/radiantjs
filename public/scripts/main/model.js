@@ -159,7 +159,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		Radiant.Util.Parser.call(this, buffer)
 	}
 
-	_.extend(Parser.prototype, Radiant.Util.Parser.prototype, {
+	$.extend(Parser.prototype, Radiant.Util.Parser.prototype, {
 		constructor: Parser,
 
 		/**
@@ -184,7 +184,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					z = parseFloat(this.nextToken())
 
 					// Put Z facing "up"
-					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
+					brush.geometry.vertices.push(new THREE.Vector3(x, z, y))
 
 					if (++v % 3 == 0) {
 						// material = Radiant.Material.Common.caulk

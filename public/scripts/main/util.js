@@ -19,7 +19,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 	Math.clamp = function(value, min, max) {
 		return Math.max(min, Math.min(value, max));
 	}
-	
+
 	/**
 	 * Sets all elements of this Vector2 to 0.
 	 */
@@ -27,14 +27,14 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		this.x = this.y = 0
 		return this
 	}
-	
+
 	/**
 	 * @return {String} A formatted String representation of this Vector2.
 	 */
 	THREE.Vector2.prototype.toString = function() {
 		return '(' + this.x + ' ' + this.y + ')'
 	}
-	
+
 	/**
 	 * Sets all elements of this Vector3 to 0.
 	 */
@@ -42,12 +42,24 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		this.x = this.y = this.z = 0
 		return this
 	}
-	
+
 	/**
 	 * @return {String} A formatted String representation of this Vector3.
 	 */
 	THREE.Vector3.prototype.toString = function() {
 		return '(' + this.x + ' ' + this.y + ' ' + this.z + ')'
+	}
+
+	/**
+	 * Centers this jQuery object on the screen.
+	 */
+	jQuery.fn.center = function() {
+		this.css({
+			position: 'absolute',
+			top: (($(window).height() - $(this).height()) / 2) + 'px',
+			left: (($(window).width() - $(this).width()) / 2) + 'px'
+		})
+		return this
 	}
 
 	var module = {}
@@ -64,7 +76,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		this.index = 0
 	}
 
-	_.extend(module.Parser.prototype, {
+	$.extend(module.Parser.prototype, {
 
 		/**
 		 * Parses the next token in the buffer. This is reminiscent of
