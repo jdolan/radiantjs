@@ -180,11 +180,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 				if (token == '(') {
 					x = parseFloat(this.nextToken())
-					y = parseFloat(this.nextToken())
 					z = parseFloat(this.nextToken())
+					y = parseFloat(this.nextToken())
 
-					// Put Z facing "up"
-					brush.geometry.vertices.push(new THREE.Vector3(x, z, y))
+					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
 
 					if (++v % 3 == 0) {
 						// material = Radiant.Material.Common.caulk
@@ -195,6 +194,12 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 						// brush.mesh.material.materials.length - 1
 
 						brush.geometry.faces.push(face)
+						
+						brush.geometry.faceVertexUvs[0].push([
+							new THREE.Vector2(0, 1),
+							new THREE.Vector2(0, 1),
+							new THREE.Vector2(0, 1)
+						])
 					}
 				}
 			}
@@ -280,12 +285,12 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 					handler(new Parser(e.target.result).parse())
 				}
 				reader.readAsText(resource)
-			} else if (resource instanceof String) {
+			} else if ($.type(resource) == 'string') {
 				$.get(resource, function(data) {
 					handler(new Parser(data).parse())
 				})
 			} else {
-				console.error('Invalid file specified', file)
+				console.error('Invalid file specified', resource)
 			}
 		}
 	}

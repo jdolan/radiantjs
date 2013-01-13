@@ -51,4 +51,5 @@ require.config({
  */
 require([ 'Radiant.Controller' ], function() {
 	window.radiant = new Radiant.Controller.Application({})
+	window.radiant.loadMap('media/maps/construct.map')
 })

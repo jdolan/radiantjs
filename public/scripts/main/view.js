@@ -492,10 +492,6 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				viewport: new THREE.Vector4(w, 0, w, h),
 				position: new THREE.Vector3(0, 0, -1)
 			})))
-
-			// cube time
-			var cube = new THREE.CubeGeometry(64, 128, 256)
-			this.scene.add(new THREE.Mesh(cube, Radiant.Material.Common.caulk))
 		}
 	})
 

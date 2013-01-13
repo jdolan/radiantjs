@@ -47,7 +47,7 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 			
 			$('#sample-maps > li > a', this.modal).click(function(c) {
 				c.preventDefault()
-				self.application.loadMap(new String(this.href))
+				self.application.loadMap(this.href)
 				self.hide()
 			})
 		}
