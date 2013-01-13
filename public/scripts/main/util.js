@@ -62,6 +62,39 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		return this
 	}
 
+	/**
+	 * Makes this jQuery object draggable.
+	 */
+	jQuery.fn.draggable = function() {
+		var self = this
+		this.mousedown(function(e) {
+			var offset = self.offset()
+			self.data('drag', {
+				offsetX: e.pageX - offset.left,
+				offsetY: e.pageY - offset.top,
+				select: self.css('user-select')
+			})
+			self.css('user-select', 'none')
+		})
+		this.mousemove(function(e) {
+			var drag = self.data('drag')
+			if (drag != undefined) {
+				self.offset({
+					left: e.pageX - drag.offsetX,
+					top: e.pageY - drag.offsetY
+				})
+			}
+		})
+		this.mouseup(function(e) {
+			var drag = self.data('drag')
+			if (drag != undefined) {
+				self.css('user-select', drag.select)
+				self.removeData('drag')
+			}
+		})
+		return this
+	}
+
 	var module = {}
 
 	/**
