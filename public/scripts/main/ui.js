@@ -97,9 +97,37 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 
 		this.application = params.application
 		this.modal = params.modal
-		this.options = params.options || {
 
-		}
+		this.dragging = false
+		this.dragOffsetX = 0
+		this.dragOffsetY = 0
+
+		var self = this
+
+		// Begin dragging on mouse-down
+		this.modal.mousedown(function(e) {
+			var offset = self.modal.offset()
+			self.dragOffsetX = e.pageX - offset.left
+			self.dragOffsetY = e.pageY - offset.top
+			self.modal.css('user-select', 'none')
+			self.dragging = true
+		})
+
+		// Move the Modal with each mouse-move event
+		this.modal.mousemove(function(e) {
+			if (self.dragging) {
+				self.modal.offset({
+					left: e.pageX - self.dragOffsetX,
+					top: e.pageY - self.dragOffsetY
+				})
+			}
+		})
+
+		// End dragging on mouse-up
+		this.modal.mouseup(function(e) {
+			self.modal.css('user-select', 'all')
+			self.dragging = false
+		})
 
 		this.initialize(params)
 	}
@@ -127,7 +155,7 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 		 * Hides this Modal.
 		 */
 		hide: function() {
-			this.modal.hide(this.options)
+			this.modal.hide()
 		}
 	})
 
