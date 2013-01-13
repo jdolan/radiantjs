@@ -18,15 +18,15 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.OpenFileModal = function(params) {
-		
+
 		params.modal = params.modal || $('#open-file-modal')
-		
+
 		Radiant.Ui.Modal.call(this, params)
 	}
 
 	$.extend(module.OpenFileModal.prototype, Radiant.Ui.Modal.prototype, {
 		constructor: module.OpenFileModal,
-		
+
 		/**
 		 * Initializes this OpenFileModal.
 		 * 
@@ -34,25 +34,27 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 		 */
 		initialize: function(params) {
 			var self = this
-			
+
 			$(':button[name=Cancel]', this.modal).click(function(e) {
 				self.hide()
+				e.preventDefault()
 			})
-			
+
 			$(':button[name=Open]', this.modal).click(function(e) {
 				var file = $('file', this.modal).files[0]
 				self.application.loadMap(file)
 				self.hide()
+				e.preventDefault()
 			})
-			
-			$('#sample-maps > li > a', this.modal).click(function(c) {
-				c.preventDefault()
+
+			$('#sample-maps > li > a', this.modal).click(function(e) {
 				self.application.loadMap(this.href)
 				self.hide()
+				e.preventDefault()
 			})
 		}
 	})
-	
+
 	/**
 	 * The main Menu.
 	 * 
@@ -62,9 +64,9 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.MainMenu = function(params) {
-		
+
 		params.menu = params.menu || $('#main-menu')
-		
+
 		Radiant.Ui.Menu.call(this, params)
 	}
 
@@ -84,7 +86,7 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 			$('a[href=#Open]', this.menu).click(function(e) {
 				self.openFileModal.show()
 			})
-			
+
 			$('a[href=#Close]', this.menu).click(function(e) {
 				self.application.loadMap(null)
 			})
@@ -133,7 +135,7 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 					this.map = map
 					$(this).trigger(Radiant.Event.Map.Load, this.map)
 				}
-	
+
 				Radiant.Model.MapFactory.load(file, handler.bind(this))
 			} else {
 				this.map = new Radiant.Model.Map()

@@ -205,9 +205,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.fov = params.fov || 50
 
-			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096.0)
+			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
 			this.camera.position.copy(params.position)
-			this.camera.lookAt(new THREE.Vector3())
+			this.camera.lookAt(new THREE.Vector3(0, 0, 16384))
 
 			this.scene.add(this.camera)
 
@@ -416,6 +416,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 					this.scene.add(brush.mesh)
 				}
 			}
+			
+			this.views[0].camera.position = new THREE.Vector3()
 		},
 
 		/**
@@ -468,7 +470,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			// Perspective camera
 			this.views.push(new module.View.Perspective($.extend(params, {
 				viewport: new THREE.Vector4(0, h, w, h),
-				position: new THREE.Vector3(256, 256, 256)
+				position: new THREE.Vector3(0, 0, 0)
 			})))
 
 			$.extend(params, {

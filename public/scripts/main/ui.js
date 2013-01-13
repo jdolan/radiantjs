@@ -6,6 +6,115 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 	var module = {}
 
 	/**
+	 * Centers this jQuery object on the screen.
+	 */
+	jQuery.fn.center = function() {
+		this.css({
+			position: 'absolute',
+			top: (($(window).height() - $(this).height()) / 2) + 'px',
+			left: (($(window).width() - $(this).width()) / 2) + 'px'
+		})
+		return this
+	}
+
+	/**
+	 * Makes this jQuery object draggable.
+	 */
+	jQuery.fn.draggable = function() {
+		var self = this
+		this.mousedown(function(e) {
+			var offset = self.offset()
+			self.data('drag', {
+				offsetX: e.pageX - offset.left,
+				offsetY: e.pageY - offset.top,
+				select: self.css('user-select')
+			})
+			self.css('user-select', 'none')
+		})
+		this.mousemove(function(e) {
+			var drag = self.data('drag')
+			if (drag != undefined) {
+				self.offset({
+					left: e.pageX - drag.offsetX,
+					top: e.pageY - drag.offsetY
+				})
+			}
+		})
+		this.mouseup(function(e) {
+			var drag = self.data('drag')
+			if (drag != undefined) {
+				self.css('user-select', drag.select)
+				self.removeData('drag')
+			}
+		})
+		return this
+	}
+
+	/**
+	 * Makes this jQuery object a menu. The element should resemble:
+	 * 
+	 * <code>
+	 * <ul class='menu'>
+	 *   <li><a href='#Item1'>Item1</a></li>
+	 *   <li><a href='#Item2'>Item2</a>
+	 *     <ul>
+	 *       <li><a href='#Item2.1'>Item2.1</a></li>
+	 *       <li><a href='#Item2.2'>Item2.2</a></li>
+	 *     </ul>
+	 *   </li>
+	 * </ul>
+	 * </code>
+	 */
+	jQuery.fn.menu = function(action) {
+
+		var self = this
+
+		if (action == 'close') {
+			$('li > a', this).removeClass('active')
+			$('li > ul', this).hide()
+			this.removeData('menu-siblings')
+		} else {
+			// Handle click events on all items
+			$('li > a', this).click(function(e) {
+				var clicked = $(this).parent()
+				// For node items, show their children
+				if ($('> ul', clicked).length) {
+					var siblings = $(this).closest('ul').find('> li')
+					siblings.each(function(index, item) {
+						if ($(this).is(clicked)) {
+							$(this).find('> a').addClass('active')
+							$(this).find('> ul').show()
+						} else {
+							$(this).find('> a').removeClass('active')
+							$(this).find('> ul').hide()
+						}
+					})
+					// Enable auto-expand of siblings
+					if (!e.isTrigger) {
+						self.data('menu-siblings', $('> a', siblings))
+					}
+				} else { // For leaf items, simply close the menu
+					self.menu('close')
+				}
+			})
+			// Auto-expand sibling menus in the active context
+			$('li > a', this).mouseenter(function(e) {
+				if ($(this).is(self.data('menu-siblings'))) {
+					$(this).click()
+				}
+			})
+			// Swallow click events at the menu root to remain visible
+			this.click(function(e) {
+				e.stopPropagation()
+			})
+			// But hide the menu if the user clicks elsewhere on the page
+			$('body').click(function(e) {
+				self.menu('close')
+			})
+		}
+	}
+
+	/**
 	 * The base Menu type. These menus emulate Apple OS X.
 	 * 
 	 * @constructor
@@ -15,53 +124,9 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 	module.Menu = function(params) {
 
 		this.application = params.application
-		this.menu = params.menu
+		this.menu = params.menu.menu()
 
-		var self = this
-
-		// Bind the click handler for all menu items
-		$('li > a', self.menu).click(function(e) {
-			// Resolve the item which received the click
-			var that = $(this).parent()[0]
-			// For node items, expand their tree and hide others
-			if ($('> ul', that).length) {
-				var siblings = $(this).closest('ul').find('> li')
-				siblings.each(function(index, item) {
-					if (this == that) {
-						$(this).find('> a').addClass('active')
-						$(this).find('> ul').show()
-					} else {
-						$(this).find('> a').removeClass('active')
-						$(this).find('> ul').hide()
-					}
-				})
-				// For clicks, enable auto-expand of siblings
-				if (!e.isTrigger) {
-					self.context = $(this).closest('ul').find('> li > a')
-				}
-			} else { // For leaf items, simply close the menu
-				self.close()
-			}
-		})
-
-		// Auto-expand sibling menus in the active context
-		$('li > a', self.menu).mouseenter(function(e) {
-			if ($(this).is(self.context)) {
-				$(this).click()
-			}
-		})
-
-		// Swallow click events anywhere within the menu to remain visible
-		$(self.menu).click(function(e) {
-			e.stopPropagation()
-		})
-
-		// But hide the menu if the user clicks elsewhere on the page
-		$('body').click(function(e) {
-			self.close()
-		})
-
-		self.initialize(params)
+		this.initialize(params)
 	}
 
 	$.extend(module.Menu.prototype, {
@@ -80,11 +145,7 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 		 * Closes all expanded sub-menus of this menu.
 		 */
 		close: function() {
-
-			$('li > a', this.menu).removeClass('active')
-			$('li > ul', this.menu).hide()
-
-			this.context = null
+			this.menu.menu('close')
 		}
 	})
 
