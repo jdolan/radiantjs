@@ -20,36 +20,6 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		return Math.max(min, Math.min(value, max));
 	}
 
-	/**
-	 * Sets all elements of this Vector2 to 0.
-	 */
-	THREE.Vector2.prototype.clear = function() {
-		this.x = this.y = 0
-		return this
-	}
-
-	/**
-	 * @return {String} A formatted String representation of this Vector2.
-	 */
-	THREE.Vector2.prototype.toString = function() {
-		return '(' + this.x + ' ' + this.y + ')'
-	}
-
-	/**
-	 * Sets all elements of this Vector3 to 0.
-	 */
-	THREE.Vector3.prototype.clear = function() {
-		this.x = this.y = this.z = 0
-		return this
-	}
-
-	/**
-	 * @return {String} A formatted String representation of this Vector3.
-	 */
-	THREE.Vector3.prototype.toString = function() {
-		return '(' + this.x + ' ' + this.y + ' ' + this.z + ')'
-	}
-
 	var module = {}
 
 	/**

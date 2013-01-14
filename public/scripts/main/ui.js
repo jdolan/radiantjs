@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * This module provides interface elements (widgets).
  */

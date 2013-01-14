@@ -6,7 +6,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
+define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 	var module = {}
 
@@ -36,10 +36,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 	})
 
 	/**
-	 * Surfaces are described by their texture and attributes. Every Surface
-	 * must belong to a Brush.
+	 * Faces are described by their texture and attributes. Every Face must
+	 * belong to a Brush.
 	 */
-	module.Surface = Backbone.Model.extend({
+	module.Face = Backbone.Model.extend({
 		defaults: {
 			texture: 'common/caulk',
 			offsetS: 0,
@@ -48,11 +48,21 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 			scaleT: 0,
 			flags: 0,
 			value: 0
+		},
+
+		/**
+		 * Backbone initialization.
+		 */
+		initialize: function(attribtues, options) {
+			this.plane = null
+			this.vertices = null
+
+			this.textureMatrix = new THREE.Matrix4()
 		}
 	})
 
 	/**
-	 * Brushes are comprised of 4 or more Surfaces. Each brush must belong to an
+	 * Brushes are comprised of 4 or more Faces. Each brush must belong to an
 	 * Entity (default is Worldspawn).
 	 */
 	module.Brush = Backbone.Model.extend({
@@ -61,12 +71,39 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 		 * Backbone initialization.
 		 */
 		initialize: function(attributes, options) {
-			this.surfaces = new Backbone.Collection()
+			this.faces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk/*
-																					 * new
-																					 * THREE.MeshFaceMaterial()
-																					 */)
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
+		},
+
+		/**
+		 * Updates the geometry for this Brush.
+		 */
+		update: function() {
+
+			this.geometry.vertices.length = 0
+			this.geometry.faceVertexUvs.length = 0
+
+			var planes = []
+			for ( var i = 0; i < this.faces.length; i++) {
+				planes.push(this.faces.at(i).plane)
+			}
+
+			for ( var i = 0; i < this.faces.length; i++) {
+				var face = this.faces.at(i)
+
+				face.vertices = face.plane.clip(planes, face.vertices)
+
+				/*for ( var j = 0; j < face.vertices.length; j++) {
+					// TODO Triangulate polygons
+					this.geometry.vertices.push(face.vertices[i])
+					this.geometry.faceVertexUvs.push(new THREE.Vector2(0, 1))
+				}*/
+			}
+
+			this.geometry.mergeVertices()
+
+			return this
 		}
 	})
 
@@ -171,7 +208,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 			var brush = new module.Brush()
 
-			var token, x, y, z, face, material, v = 0
+			var token, points = [], x, y, z
 			while (true) {
 				token = this.nextToken()
 				if (!token || token == '}') {
@@ -180,33 +217,24 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material' ], function() {
 
 				if (token == '(') {
 					x = parseFloat(this.nextToken())
-					z = parseFloat(this.nextToken())
 					y = parseFloat(this.nextToken())
+					z = parseFloat(this.nextToken())
 
-					brush.geometry.vertices.push(new THREE.Vector3(x, y, z))
+					points.push(new THREE.Vector3(x, y, z))
 
-					if (++v % 3 == 0) {
-						// material = Radiant.Material.Common.caulk
-						// brush.mesh.material.materials.push(material)
+					if (points.length == 3) {
+						var face = new module.Face()
 
-						face = new THREE.Face3(v - 3, v - 2, v - 1)
-						// face.materialIndex =
-						// brush.mesh.material.materials.length - 1
+						var p1 = points[0], p2 = points[1], p3 = points[2]
+						face.plane = new THREE.Plane().setFromCoplanarPoints(p1, p2, p3)
 
-						brush.geometry.faces.push(face)
-						
-						brush.geometry.faceVertexUvs[0].push([
-							new THREE.Vector2(0, 1),
-							new THREE.Vector2(0, 1),
-							new THREE.Vector2(0, 1)
-						])
+						brush.faces.push(face)
+						points.length = 0
 					}
 				}
 			}
 
-			brush.geometry.mergeVertices()
-
-			return brush
+			return brush.update()
 		},
 
 		/**
