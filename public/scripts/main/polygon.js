@@ -50,17 +50,6 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		},
 
 		/**
-		 * Returns the distance to the specified Plane for clipping purposes.
-		 * 
-		 * @param {THREE.Plane} p The plane to test.
-		 * 
-		 * @return {Number} The distance to the specified Plane.
-		 */
-		distanceToPlane: function(p) {
-			return this.x * p.normal.x + this.y * p.normal.y + this.z * p.normal.z - p.constant
-		},
-
-		/**
 		 * @return {String} A formatted String representation of this Vector3.
 		 */
 		toString: function() {
@@ -134,23 +123,27 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 * resulting Array of vertices.
 		 * 
 		 * @param {Array} planes An Array of Planes to clip against.
+		 * @param {Array} vertices The Array of Vector3 to clip.
+		 * @param {Number} epsilon The clip epsilon for sidedness.
 		 * 
 		 * @return {Array} The resulting Array of Vector3.
 		 */
-		clip: function(planes, vertices) {
+		clip: function(planes, vertices, epsilon) {
 
 			vertices = vertices || this.quad()
+			epsilon = epsilon || module.Epsilon
 
 			for ( var i = 0; i < planes.length; i++) {
+				var plane = planes[i]
 
-				if (planes[i] == this) {
+				if (plane == this) {
 					continue
 				}
 
 				var newVertices = []
 
 				var prev, vert = vertices[0]
-				var prevDistance, distance = vert.distanceToPlane(planes[i])
+				var prevDistance, distance = plane.distanceToPoint(vert)
 
 				for ( var j = 0; j < vertices.length; j++) {
 
@@ -158,14 +151,14 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 					prevDistance = distance
 
 					vert = vertices[(j + 1) % vertices.length]
-					distance = vert.distanceToPlane(planes[i])
+					distance = plane.distanceToPoint(vert)
 
-					if (prevDistance > -module.Epsilon) {
+					if (prevDistance > -epsilon) {
 						newVertices.push(prev.clone())
 					}
 
-					if ((prevDistance > module.Epsilon && distance < -module.Epsilon)
-							|| (prevDistance < -module.Epsilon && distance > module.Epsilon)) {
+					if ((prevDistance > epsilon && distance < -epsilon)
+							|| (prevDistance < -epsilon && distance > epsilon)) {
 
 						var fraction = prevDistance / (prevDistance - distance)
 
@@ -185,7 +178,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 			console.debug('clipped to ' + vertices.length)
 			return vertices
 		},
-		
+
 		/**
 		 * @return {String} A formatted String representation of this Plane.
 		 */
