@@ -15,9 +15,6 @@ define('Radiant.Polygon.Test', [ 'Jasmine', 'Radiant.Polygon' ], function() {
 
 		var plane1 = new THREE.Plane().setFromCoplanarPoints(p1, p2, p3)
 
-		/**
-		 * Tests for THREE.Plane extensions.
-		 */
 		describe('Plane ' + plane1, function() {
 
 			var normal = new THREE.Vector3(0, 0, 1)
@@ -101,10 +98,31 @@ define('Radiant.Polygon.Test', [ 'Jasmine', 'Radiant.Polygon' ], function() {
 
 		describe('Clipping ' + plane1 + ' against ' + plane2, function() {
 
+			var vertices = plane1.clip([ plane2 ])
+			it('Results in 4 vertices', function() {
+				expect(vertices.length).toBe(4)
+			})
+
+			it('Clips along XZ', function() {
+				for ( var i = 0; i < vertices.length; i++) {
+					expect(vertices[i].y).toBeGreaterThan(-Radiant.Polygon.Epsilon)
+				}
+			})
+
 		})
 
 		describe('Clipping ' + plane2 + ' against ' + plane1, function() {
 
+			var vertices = plane2.clip([ plane1 ])
+			it('Results in 4 vertices', function() {
+				expect(vertices.length).toBe(4)
+			})
+
+			it('Clips along XY', function() {
+				for ( var i = 0; i < vertices.length; i++) {
+					expect(vertices[i].z).toBeGreaterThan(-Radiant.Polygon.Epsilon)
+				}
+			})
 		})
 	})
 })

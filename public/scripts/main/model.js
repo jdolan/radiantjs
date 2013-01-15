@@ -206,9 +206,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 */
 		parseBrush: function() {
 
-			var brush = new module.Brush()
+			var face, brush = new module.Brush()
 
-			var token, points = [], x, y, z
+			var token, points = []
 			while (true) {
 				token = this.nextToken()
 				if (!token || token == '}') {
@@ -216,17 +216,17 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 
 				if (token == '(') {
-					x = parseFloat(this.nextToken())
-					y = parseFloat(this.nextToken())
-					z = parseFloat(this.nextToken())
+					var x = parseFloat(this.nextToken())
+					var y = parseFloat(this.nextToken())
+					var z = parseFloat(this.nextToken())
 
 					points.push(new THREE.Vector3(x, y, z))
 
 					if (points.length == 3) {
 						var face = new module.Face()
 
-						var p1 = points[0], p2 = points[1], p3 = points[2]
-						face.plane = new THREE.Plane().setFromCoplanarPoints(p1, p2, p3)
+						var a = points[0], b = points[1], c = points[2]
+						face.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
 
 						brush.faces.push(face)
 						points.length = 0

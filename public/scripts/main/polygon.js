@@ -142,40 +142,39 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 
 				var newVertices = []
 
-				var prev, vert = vertices[0]
-				var prevDistance, distance = plane.distanceToPoint(vert)
-
 				for ( var j = 0; j < vertices.length; j++) {
 
-					prev = vert
-					prevDistance = distance
+					var vert0 = vertices[j]
+					var vert1 = vertices[(j + 1) % vertices.length]
 
-					vert = vertices[(j + 1) % vertices.length]
-					distance = plane.distanceToPoint(vert)
+					var dist0 = plane.distanceToPoint(vert0)
+					var dist1 = plane.distanceToPoint(vert1)
 
-					if (prevDistance > -epsilon) {
-						newVertices.push(prev.clone())
+					if (dist0 > -epsilon) {
+						newVertices.push(vert0.clone())
 					}
 
-					if ((prevDistance > epsilon && distance < -epsilon)
-							|| (prevDistance < -epsilon && distance > epsilon)) {
+					if ((dist0 > -epsilon && dist1 < epsilon)
+							|| (dist0 < epsilon && dist1 > -epsilon)) {
 
-						var fraction = prevDistance / (prevDistance - distance)
+						var frac = dist0 / (dist0 - dist1)
 
 						var v = new THREE.Vector3()
 
-						v.x = prev.x + fraction * (vert.x - prev.x)
-						v.y = prev.y + fraction * (vert.y - prev.y)
-						v.z = prev.z + fraction * (vert.z - prev.z)
+						v.x = vert0.x + frac * (vert1.x - vert0.x)
+						v.y = vert0.y + frac * (vert1.y - vert0.y)
+						v.z = vert0.z + frac * (vert1.z - vert0.z)
 
 						newVertices.push(v)
 					}
 				}
 
+				if (vertices.length && !newVertices.length) {
+					console.debug('Plane ' + plane + ' culled ' + this, vertices)
+				}
+
 				vertices = newVertices
 			}
-
-			console.debug('clipped to ' + vertices.length)
 			return vertices
 		},
 
