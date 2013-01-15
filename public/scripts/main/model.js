@@ -36,10 +36,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	})
 
 	/**
-	 * Faces are described by their texture and attributes. Every Face must
-	 * belong to a Brush.
+	 * Surfaces are described by their texture and attributes. Every Surface
+	 * must belong to a Brush.
 	 */
-	module.Face = Backbone.Model.extend({
+	module.Surface = Backbone.Model.extend({
 		defaults: {
 			texture: 'common/caulk',
 			offsetS: 0,
@@ -62,7 +62,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	})
 
 	/**
-	 * Brushes are comprised of 4 or more Faces. Each brush must belong to an
+	 * Brushes are comprised of 4 or more Surfaces. Each brush must belong to an
 	 * Entity (default is Worldspawn).
 	 */
 	module.Brush = Backbone.Model.extend({
@@ -71,7 +71,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * Backbone initialization.
 		 */
 		initialize: function(attributes, options) {
-			this.faces = new Backbone.Collection()
+			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
 			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
 		},
@@ -82,24 +82,44 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		update: function() {
 
 			this.geometry.vertices.length = 0
+			this.geometry.faces.length = 0
 			this.geometry.faceVertexUvs.length = 0
 
 			var planes = []
-			for ( var i = 0; i < this.faces.length; i++) {
-				planes.push(this.faces.at(i).plane)
+			for ( var i = 0; i < this.surfaces.length; i++) {
+				planes.push(this.surfaces.at(i).plane)
 			}
 
-			for ( var i = 0; i < this.faces.length; i++) {
-				var face = this.faces.at(i)
+			var culledSurfaces = []
+			for ( var i = 0; i < this.surfaces.length; i++) {
+				var surface = this.surfaces.at(i)
 
-				face.vertices = face.plane.clip(planes, face.vertices)
-
-				for ( var j = 0; j < face.vertices.length; j++) {
-					// TODO Triangulate polygons
-					this.geometry.vertices.push(face.vertices[j])
-					this.geometry.faceVertexUvs.push(new THREE.Vector2(0, 1))
+				surface.vertices = surface.plane.clip(planes, surface.vertices)
+				if (surface.vertices.length) {
+					
+					for ( var j = 0; j < surface.vertices.length; j++) {
+						this.geometry.vertices.push(surface.vertices[j])
+	
+						if (j >= 2) {
+							var a = surface.vertices[0]
+							var b = surface.vertices[j]
+							var c = surface.vertices[j - 1]
+	
+							var face = new THREE.Face3(a, b, c, surface.normal)
+							this.geometry.faces.push(face)
+	
+							var sta = new THREE.Vector2(0, 1)
+							var stb = new THREE.Vector2(0, 1)
+							var stc = new THREE.Vector2(0, 1)
+	
+							this.geometry.faceVertexUvs.push([ sta, stb, stc ])
+						}
+					}
+				} else {
+					culledSurfaces.push(surface)
 				}
-			}
+			}			
+			this.surfaces.remove(culledSurfaces)
 
 			this.geometry.mergeVertices()
 
@@ -206,7 +226,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 */
 		parseBrush: function() {
 
-			var face, brush = new module.Brush()
+			var brush = new module.Brush()
 
 			var token, points = []
 			while (true) {
@@ -223,12 +243,12 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 					points.push(new THREE.Vector3(x, y, z))
 
 					if (points.length == 3) {
-						var face = new module.Face()
+						var surface = new module.Surface()
 
 						var a = points[0], b = points[1], c = points[2]
-						face.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
+						surface.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
 
-						brush.faces.push(face)
+						brush.surfaces.push(surface)
 						points.length = 0
 					}
 				}

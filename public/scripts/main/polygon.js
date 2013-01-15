@@ -13,12 +13,12 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		/**
 		 * Constant for Plane projections (clipping).
 		 */
-		PlaneSize: 1024 * 1024,
+		PlaneSize: 32768,
 
 		/**
 		 * Constant for Plane intersections (clipping).
 		 */
-		Epsilon: 0.01
+		Epsilon: Number.MIN_VALUE
 	}
 
 	$.extend(THREE.Vector2.prototype, {
@@ -84,7 +84,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		},
 
 		/**
-		 * Returns a quad of the specified size for this plane.
+		 * Returns a quadrilateral of the specified size for this plane.
 		 * 
 		 * @param {Number} size The quad size (Radiant.Polygon.PlaneSize).
 		 * 
@@ -124,14 +124,12 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 * 
 		 * @param {Array} planes An Array of Planes to clip against.
 		 * @param {Array} vertices The Array of Vector3 to clip.
-		 * @param {Number} epsilon The clip epsilon for sidedness.
 		 * 
 		 * @return {Array} The resulting Array of Vector3.
 		 */
-		clip: function(planes, vertices, epsilon) {
+		clip: function(planes, vertices) {
 
 			vertices = vertices || this.quad()
-			epsilon = epsilon || module.Epsilon
 
 			for ( var i = 0; i < planes.length; i++) {
 				var plane = planes[i]
@@ -150,12 +148,11 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 					var dist0 = plane.distanceToPoint(vert0)
 					var dist1 = plane.distanceToPoint(vert1)
 
-					if (dist0 > -epsilon) {
+					if (dist0 >= 0) {
 						newVertices.push(vert0.clone())
 					}
 
-					if ((dist0 > -epsilon && dist1 < epsilon)
-							|| (dist0 < epsilon && dist1 > -epsilon)) {
+					if ((dist0 >= 0 && dist1 < 0) || (dist0 < 0 && dist1 >= 0)) {
 
 						var frac = dist0 / (dist0 - dist1)
 
@@ -169,12 +166,15 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 					}
 				}
 
-				if (vertices.length && !newVertices.length) {
-					console.debug('Plane ' + plane + ' culled ' + this, vertices)
+				if (newVertices.length < 3) {
+					// console.debug('Plane ' + plane + ' culled ' + this,
+					// vertices)
+					return []
 				}
 
 				vertices = newVertices
 			}
+
 			return vertices
 		},
 
