@@ -2,29 +2,21 @@
 
 /**
  * This is a JavaScript implementation of the Radiant level editing software for
- * idTech games. It requires WebGL and a decent JavaScript engine.
+ * idTech games. It requires WebGL and a decent JavaScript engine.<br/>
+ * 
+ * To run tests, source this script with <code>Radiant.Test = true</code>.
  * 
  * @author jdolan
  */
 
-/**
- * The Radiant global is eventually populated through AMD via Require.js.
- */
-var Radiant = {
-	Version: 'RadiantJS 0.1'
-}
-
-/*
- * Setup AMD through Require.js.
- */
 require.config({
 	baseUrl: 'scripts',
 
 	paths: {
-		Backbone: 'lib/backbone-0.9.9.min',
-		jQuery: 'lib/jquery-1.8.3.min',
-		THREE: 'lib/three-r54.min',
-		Underscore: 'lib/underscore-1.4.3.min',
+		Backbone: 'main/lib/backbone-0.9.9.min',
+		jQuery: 'main/lib/jquery-1.8.3.min',
+		THREE: 'main/lib/three-r55dev',
+		Underscore: 'main/lib/underscore-1.4.3.min',
 
 		'Radiant.Controller': 'main/controller',
 		'Radiant.Event': 'main/event',
@@ -34,23 +26,38 @@ require.config({
 		'Radiant.Polygon': 'main/polygon',
 		'Radiant.Ui': 'main/ui',
 		'Radiant.Util': 'main/util',
-		'Radiant.View': 'main/view'
+		'Radiant.View': 'main/view',
+
+		Jasmine: 'test/lib/jasmine-1.3.1',
+		JasmineHtml: 'test/lib/jasmine-html-1.3.1',
+
+		'Radiant.Polygon.Test': 'test/polygon'
 	},
 
 	shim: {
 		Backbone: {
 			deps: [ 'Underscore' ],
 			exports: 'Backbone'
+		},
+		JasmineHtml: {
+			deps: [ 'Jasmine' ]
 		}
 	},
 
 	urlArgs: 'bust=' + (new Date()).getTime()
 })
 
-/*
- * Load the Main module and instantiate it.
- */
-require([ 'Radiant.Controller' ], function() {
-	window.radiant = new Radiant.Controller.Application({})
-	window.radiant.loadMap('media/maps/construct.map')
-})
+var Radiant = Radiant || {}
+Radiant.Version = 'RadiantJS 0.1'
+
+if (Radiant.Test) {
+	require([ 'JasmineHtml', 'Radiant.Polygon.Test' ], function() {
+		jasmine.getEnv().addReporter(new jasmine.HtmlReporter())
+		jasmine.getEnv().execute()
+	})
+} else {
+	require([ 'Radiant.Controller' ], function() {
+		window.radiant = new Radiant.Controller.Application({})
+		window.radiant.loadMap('media/maps/construct.map')
+	})
+}

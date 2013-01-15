@@ -94,11 +94,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 				face.vertices = face.plane.clip(planes, face.vertices)
 
-				/*for ( var j = 0; j < face.vertices.length; j++) {
+				for ( var j = 0; j < face.vertices.length; j++) {
 					// TODO Triangulate polygons
-					this.geometry.vertices.push(face.vertices[i])
+					this.geometry.vertices.push(face.vertices[j])
 					this.geometry.faceVertexUvs.push(new THREE.Vector2(0, 1))
-				}*/
+				}
 			}
 
 			this.geometry.mergeVertices()

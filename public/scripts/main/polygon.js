@@ -81,8 +81,8 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 				up.set(1, 0, 0)
 			}
 
-			var dot = up.dot(this.normal)
-			up.addSelf(this.normal.clone().multiplyScalar(-dot))
+			var dot = -up.dot(this.normal)
+			up.add(this.normal.clone().multiplyScalar(dot))
 
 			return up.normalize()
 		},
@@ -91,13 +91,13 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 * @return The right-vector for this plane.
 		 */
 		right: function() {
-			return new THREE.Vector3().cross(this.up(), this.normal)
+			return this.up().clone().cross(this.normal)
 		},
 
 		/**
 		 * Returns a quad of the specified size for this plane.
 		 * 
-		 * @param {Number} size The quad size (default 16384).
+		 * @param {Number} size The quad size (Radiant.Polygon.PlaneSize).
 		 * 
 		 * @return {Array} An Array of Vector3 of length 4.
 		 */
@@ -139,13 +139,15 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 */
 		clip: function(planes, vertices) {
 
-			var newVertices = [], vertices = vertices || this.quad()
+			vertices = vertices || this.quad()
 
 			for ( var i = 0; i < planes.length; i++) {
 
 				if (planes[i] == this) {
 					continue
 				}
+
+				var newVertices = []
 
 				var prev, vert = vertices[0]
 				var prevDistance, distance = vert.distanceToPlane(planes[i])
@@ -176,9 +178,19 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 						newVertices.push(v)
 					}
 				}
+
+				vertices = newVertices
 			}
 
+			console.debug('clipped to ' + vertices.length)
 			return vertices
+		},
+		
+		/**
+		 * @return {String} A formatted String representation of this Plane.
+		 */
+		toString: function() {
+			return this.normal.toString() + ' @ ' + this.constant
 		}
 	})
 

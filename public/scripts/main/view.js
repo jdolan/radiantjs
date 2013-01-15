@@ -159,7 +159,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			if (this.target) {
 				if (this.layout.application.preferences.get('FollowPerspective')) {
-					this.camera.position.add(this.target.position, this.offset)
+					this.camera.position.addVectors(this.target.position, this.offset)
 				}
 			}
 
