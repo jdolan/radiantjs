@@ -9,9 +9,20 @@
 define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 	var module = {}
+	
+	/**
+	 * Game configurations.
+	 */
+	module.Config = Backbone.Model.extend({
+		defaults: {
+			Name: 'Unnamed Game',
+			LevelBounds: 8192,
+			Brushdef: 'idTech2'
+		}
+	})
 
 	/**
-	 * A Collection of Preferences.
+	 * User Preferences.
 	 */
 	module.Preferences = Backbone.Model.extend({
 		defaults: {

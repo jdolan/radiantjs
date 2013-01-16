@@ -21,7 +21,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		this.renderer = params.renderer
 		this.viewport = params.viewport
 		this.scene = params.scene
-		this.time = new Date().value
+		this.time = new Date().getTime()
 		this.aspect = this.viewport.z / this.viewport.w
 
 		this.initialize(params)
@@ -56,8 +56,10 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		render: function(time) {
 
-			this.update((time - this.time) / 16)
-			this.time = time
+			if (time > this.time) {
+				this.update(16 / (time - this.time))
+				this.time = time
+			}
 
 			var v = this.viewport
 			this.renderer.setViewport(v.x, v.y, v.z, v.w)
@@ -163,7 +165,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				}
 			}
 
-			this.fov = Math.clamp(this.fov, 128, 8192)
+			this.fov = THREE.Math.clamp(this.fov, 128, 8192)
 			if (this.fov != this.lastFov) {
 
 				var w = this.fov
@@ -207,7 +209,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
 			this.camera.position.copy(params.position)
-			this.camera.lookAt(new THREE.Vector3(0, 0, 16384))
+			this.camera.lookAt(new THREE.Vector3(0, 0, -1024))
 
 			this.scene.add(this.camera)
 
@@ -287,9 +289,21 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		/**
 		 * Updates this View. This is called once per frame.
 		 * 
-		 * @param {Number} delta The length of the frame (milliseconds / 16).
+		 * @param {Number} delta The length of the frame (16 / milliseconds).
 		 */
 		update: function(delta) {
+
+			if (this.rotation.length() < 0.15) {
+				this.rotation.clear()
+			} else {
+				this.rotation.multiplyScalar(0.85 * delta)
+			}
+
+			if (this.rotation.x || this.rotation.y) {
+				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
+				// this.camera.rotation.applyEuler(rotation, 'YXZ')
+				this.camera.rotation.add(rotation)
+			}
 
 			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
@@ -299,17 +313,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
 				this.camera.position = this.camera.localToWorld(this.velocity.clone())
-			}
-
-			if (this.rotation.length() < 0.15) {
-				this.rotation.clear()
-			} else {
-				this.rotation.multiplyScalar(0.85 * delta)
-			}
-
-			if (this.rotation.x || this.rotation.y || this.rotation.z) {
-				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
-				this.camera.rotation.addSelf(rotation)
+				this.camera.position.clamp(-16384, 16384)
 			}
 		}
 	})
@@ -416,7 +420,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 					this.scene.add(brush.mesh)
 				}
 			}
-			
+
 			this.views[0].camera.position = new THREE.Vector3()
 		},
 
@@ -477,23 +481,28 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				target: this.views[0].camera
 			})
 
-			// Orthographic XZ (top-down)
+			// Orthographic XY (top-down)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, h, w, h),
 				position: new THREE.Vector3(0, -1, 0)
 			})))
 
-			// Orthographic ZY (left)
+			// Orthographic YZ (left)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(0, 0, w, h),
 				position: new THREE.Vector3(-1, 0, 0)
 			})))
 
-			// Orthographic XY (back)
+			// Orthographic XZ (back)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, 0, w, h),
 				position: new THREE.Vector3(0, 0, -1)
 			})))
+
+			var geometry = new THREE.CubeGeometry(32, 64, 192)
+			var cube = new THREE.Mesh(geometry, Radiant.Material.Common.hint)
+			cube.position.set(-32, 0, -256)
+			this.scene.add(cube)
 		}
 	})
 

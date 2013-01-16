@@ -7,19 +7,6 @@
  */
 define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 
-	/**
-	 * Clamps the value to the specified bounds.
-	 * 
-	 * @param {Number} value The value.
-	 * @param {Number} min The lower bounds.
-	 * @param {Number} max The upper bounds.
-	 * 
-	 * @return {Number} The clamped value.
-	 */
-	Math.clamp = function(value, min, max) {
-		return Math.max(min, Math.min(value, max));
-	}
-
 	var module = {}
 
 	/**
