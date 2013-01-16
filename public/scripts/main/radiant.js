@@ -15,7 +15,7 @@ require.config({
 	paths: {
 		Backbone: 'main/lib/backbone-0.9.9.min',
 		jQuery: 'main/lib/jquery-1.9.0.min',
-		THREE: 'main/lib/three-r55dev',
+		THREE: 'main/lib/three-r55',
 		Underscore: 'main/lib/underscore-1.4.3.min',
 
 		'Radiant.Controller': 'main/controller',
