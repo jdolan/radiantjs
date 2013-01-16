@@ -134,7 +134,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.camera = new THREE.OrthographicCamera(-w, w, h, -h, -16384, 16384)
 			this.camera.position.copy(params.position)
-			this.camera.lookAt(new THREE.Vector3())
+			this.camera.up.set(0, 0, 1)
+			this.camera.lookAt(new THREE.Vector3(0, 0, 0))
 
 			this.scene.add(this.camera)
 
@@ -209,7 +210,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
 			this.camera.position.copy(params.position)
-			this.camera.lookAt(new THREE.Vector3(0, 0, -1024))
+			this.camera.up.set(0, 0, 1)
+			this.camera.lookAt(new THREE.Vector3(0, 1024, 0))
 
 			this.scene.add(this.camera)
 
@@ -293,18 +295,6 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		update: function(delta) {
 
-			if (this.rotation.length() < 0.15) {
-				this.rotation.clear()
-			} else {
-				this.rotation.multiplyScalar(0.85 * delta)
-			}
-
-			if (this.rotation.x || this.rotation.y) {
-				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
-				// this.camera.rotation.applyEuler(rotation, 'YXZ')
-				this.camera.rotation.add(rotation)
-			}
-
 			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
 			} else {
@@ -314,6 +304,17 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
 				this.camera.position = this.camera.localToWorld(this.velocity.clone())
 				this.camera.position.clamp(-16384, 16384)
+			}
+
+			if (this.rotation.length() < 0.15) {
+				this.rotation.clear()
+			} else {
+				this.rotation.multiplyScalar(0.85 * delta)
+			}
+
+			if (this.rotation.x || this.rotation.y) {
+				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
+				this.camera.rotation.add(rotation)
 			}
 		}
 	})
@@ -499,10 +500,11 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				position: new THREE.Vector3(0, 0, -1)
 			})))
 
-			var geometry = new THREE.CubeGeometry(32, 64, 192)
+			var geometry = new THREE.CubeGeometry(64, 96, 32)
 			var cube = new THREE.Mesh(geometry, Radiant.Material.Common.hint)
-			cube.position.set(-32, 0, -256)
+			cube.position.set(-128, 128, 0)
 			this.scene.add(cube)
+			this.views[0].camera.lookAt(cube.position)
 		}
 	})
 
