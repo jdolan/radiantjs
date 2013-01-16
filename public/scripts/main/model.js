@@ -9,7 +9,7 @@
 define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 	var module = {}
-	
+
 	/**
 	 * Game configurations.
 	 */
@@ -84,7 +84,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
+			this.mesh = new THREE.Mesh(this.geometry/*, Radiant.Material.Common.caulk*/)
 		},
 
 		/**
@@ -94,7 +94,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 			this.geometry.vertices.length = 0
 			this.geometry.faces.length = 0
-			this.geometry.faceVertexUvs.length = 0
+			this.geometry.faceVertexUvs[0].length = 0
 
 			var planes = []
 			for ( var i = 0; i < this.surfaces.length; i++) {
@@ -107,32 +107,26 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 				surface.vertices = surface.plane.clip(planes, surface.vertices)
 				if (surface.vertices.length) {
-					
 					for ( var j = 0; j < surface.vertices.length; j++) {
 						this.geometry.vertices.push(surface.vertices[j])
-	
+
 						if (j >= 2) {
-							var a = surface.vertices[0]
-							var b = surface.vertices[j]
-							var c = surface.vertices[j - 1]
-	
-							var face = new THREE.Face3(a, b, c, surface.normal)
+							var face = new THREE.Face3(0, j - 1, j, surface.plane.normal)
 							this.geometry.faces.push(face)
-	
-							var sta = new THREE.Vector2(0, 1)
-							var stb = new THREE.Vector2(0, 1)
-							var stc = new THREE.Vector2(0, 1)
-	
-							this.geometry.faceVertexUvs.push([ sta, stb, stc ])
+
+							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
+							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
+							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
 						}
 					}
 				} else {
 					culledSurfaces.push(surface)
 				}
-			}			
+			}
 			this.surfaces.remove(culledSurfaces)
 
 			this.geometry.mergeVertices()
+			this.geometry.computeBoundingBox()
 
 			return this
 		}

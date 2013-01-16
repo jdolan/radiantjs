@@ -319,7 +319,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		update: function(delta) {
 
-			var deceleration = THREE.Math.clamp(0.85 * delta, 0.1, 2.0)
+			var deceleration = 0.85//THREE.Math.clamp(0.85 * delta, 0.1, 2.0)
 
 			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
@@ -353,7 +353,6 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			module.View.prototype.setViewport.call(this, viewport)
 
 			this.camera.aspect = this.aspect
-
 			this.camera.updateProjectionMatrix()
 		}
 	})
@@ -407,7 +406,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		},
 
 		/**
-		 * Traps Radiant.Event and enters the rendering loop.
+		 * Traps window events, Radiant.Event and enters the rendering loop.
 		 */
 		trapEvents: function() {
 

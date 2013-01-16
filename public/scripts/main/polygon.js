@@ -58,7 +58,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 	})
 
 	$.extend(THREE.Plane.prototype, {
-
+		
 		/**
 		 * @return The up-vector for this Plane.
 		 */
@@ -77,13 +77,6 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		},
 
 		/**
-		 * @return The right-vector for this plane.
-		 */
-		right: function() {
-			return this.up().clone().cross(this.normal)
-		},
-
-		/**
 		 * Returns a quadrilateral of the specified size for this plane.
 		 * 
 		 * @param {Number} size The quad size (Radiant.Polygon.PlaneSize).
@@ -91,28 +84,29 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 * @return {Array} An Array of Vector3 of length 4.
 		 */
 		quad: function(size) {
-			var up = this.up(), right = this.right(), v = new THREE.Vector3(), vertices = []
+			var up = this.up(), right = up.clone().cross(this.normal)
+			var v = new THREE.Vector3(), vertices = []
 
 			size = size || module.PlaneSize
 
-			v.x = this.constant * this.normal.x - size * right.x + size * up.x
-			v.y = this.constant * this.normal.y - size * right.y + size * up.y
-			v.z = this.constant * this.normal.z - size * right.z + size * up.z
+			v.x = -this.constant * this.normal.x - size * right.x + size * up.x
+			v.y = -this.constant * this.normal.y - size * right.y + size * up.y
+			v.z = -this.constant * this.normal.z - size * right.z + size * up.z
 			vertices.push(v.clone())
 
-			v.x = this.constant * this.normal.x + size * right.x + size * up.x
-			v.y = this.constant * this.normal.y + size * right.y + size * up.y
-			v.z = this.constant * this.normal.z + size * right.z + size * up.z
+			v.x = -this.constant * this.normal.x + size * right.x + size * up.x
+			v.y = -this.constant * this.normal.y + size * right.y + size * up.y
+			v.z = -this.constant * this.normal.z + size * right.z + size * up.z
 			vertices.push(v.clone())
 
-			v.x = this.constant * this.normal.x + size * right.x - size * up.x
-			v.y = this.constant * this.normal.y + size * right.y - size * up.y
-			v.z = this.constant * this.normal.z + size * right.z - size * up.z
+			v.x = -this.constant * this.normal.x + size * right.x - size * up.x
+			v.y = -this.constant * this.normal.y + size * right.y - size * up.y
+			v.z = -this.constant * this.normal.z + size * right.z - size * up.z
 			vertices.push(v.clone())
 
-			v.x = this.constant * this.normal.x - size * right.x - size * up.x
-			v.y = this.constant * this.normal.y - size * right.y - size * up.y
-			v.z = this.constant * this.normal.z - size * right.z - size * up.z
+			v.x = -this.constant * this.normal.x - size * right.x - size * up.x
+			v.y = -this.constant * this.normal.y - size * right.y - size * up.y
+			v.z = -this.constant * this.normal.z - size * right.z - size * up.z
 			vertices.push(v.clone())
 
 			return vertices
@@ -167,8 +161,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 				}
 
 				if (newVertices.length < 3) {
-					// console.debug('Plane ' + plane + ' culled ' + this,
-					// vertices)
+					console.debug(plane + ' culled ' + this, vertices)
 					return []
 				}
 
