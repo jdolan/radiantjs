@@ -20,9 +20,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		this.layout = params.layout
 		this.renderer = params.renderer
 		this.viewport = params.viewport
-		this.scene = params.scene
-		this.time = new Date().getTime()
 		this.aspect = this.viewport.z / this.viewport.w
+		this.scene = params.scene
+		this.time = 0
 
 		this.initialize(params)
 	}
@@ -49,6 +49,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		},
 
 		/**
+		 * Sets the viewport for this View. To be overridden.
+		 * 
+		 * @param {THREE.Vector4} viewport The viewport.
+		 */
+		setViewport: function(viewport) {
+
+			this.viewport = viewport
+			this.aspect = viewport.z / viewport.w
+
+			// to be overridden
+		},
+
+		/**
 		 * Renders this view. The underlying implementation is given an
 		 * opportunity to act on the frame via <code>update</code>.
 		 * 
@@ -57,8 +70,10 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		render: function(time) {
 
 			if (time > this.time) {
-				this.update(16 / (time - this.time))
+				this.update((time - this.time) / 16)
 				this.time = time
+			} else {
+				console.warn('Invalid time for requestRenderFrame')
 			}
 
 			var v = this.viewport
@@ -126,7 +141,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.target = params.target
 			this.offset = params.position
 
-			this.fov = params.fov || 1024
+			this.fov = params.orthographicFov || 1024
 			this.lastFov = this.fov
 
 			var w = this.fov
@@ -168,19 +183,28 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.fov = THREE.Math.clamp(this.fov, 128, 8192)
 			if (this.fov != this.lastFov) {
-
-				var w = this.fov
-				var h = w / this.aspect
-
-				this.camera.left = -w
-				this.camera.right = w
-				this.camera.top = h
-				this.camera.bottom = -h
-
-				this.camera.updateProjectionMatrix()
-
+				this.setViewport(this.viewport)
 				this.lastFov = this.fov
 			}
+		},
+
+		/**
+		 * Sets the viewport for this View.
+		 * 
+		 * @param {THREE.Vector4} viewport The viewport.
+		 */
+		setViewport: function(viewport) {
+			module.View.prototype.setViewport.call(this, viewport)
+
+			var w = this.fov
+			var h = w / this.aspect
+
+			this.camera.left = -w
+			this.camera.right = w
+			this.camera.top = h
+			this.camera.bottom = -h
+
+			this.camera.updateProjectionMatrix()
 		}
 	})
 
@@ -206,7 +230,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		initialize: function(params) {
 
-			this.fov = params.fov || 50
+			this.fov = params.perspectiveFov || 50
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
 			this.camera.position.copy(params.position)
@@ -291,14 +315,16 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		/**
 		 * Updates this View. This is called once per frame.
 		 * 
-		 * @param {Number} delta The length of the frame (16 / milliseconds).
+		 * @param {Number} delta The length of the frame (milliseconds / 16).
 		 */
 		update: function(delta) {
+
+			var deceleration = THREE.Math.clamp(0.85 * delta, 0.1, 2.0)
 
 			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
 			} else {
-				this.velocity.multiplyScalar(0.85 * delta)
+				this.velocity.multiplyScalar(deceleration)
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
@@ -309,13 +335,26 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			if (this.rotation.length() < 0.15) {
 				this.rotation.clear()
 			} else {
-				this.rotation.multiplyScalar(0.85 * delta)
+				this.rotation.multiplyScalar(deceleration)
 			}
 
 			if (this.rotation.x || this.rotation.y) {
 				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
 				this.camera.rotation.add(rotation)
 			}
+		},
+
+		/**
+		 * Sets the viewport for this View.
+		 * 
+		 * @param {THREE.Vector4} viewport The viewport.
+		 */
+		setViewport: function(viewport) {
+			module.View.prototype.setViewport.call(this, viewport)
+
+			this.camera.aspect = this.aspect
+
+			this.camera.updateProjectionMatrix()
 		}
 	})
 
@@ -333,8 +372,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 		params.canvas = params.canvas || $('#layout > canvas')[0]
 
-		this.width = $(params.canvas).width()
-		this.height = $(params.canvas).height()
+		this.width = $(window).width()
+		this.height = $(window).height()
 
 		this.views = new Array()
 
@@ -376,6 +415,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				e.preventDefault()
 			})
 
+			var self = this
+			$(window).resize(function(e) {
+				var width = $(window).width(), height = $(window).height()
+				if (width != self.width || height != self.height) {
+
+					self.renderer.setSize(width, height)
+					self.resize(width, height)
+
+					self.width = width
+					self.height = height
+				}
+			})
+
 			var app = $(this.application)
 
 			app.on(Radiant.Event.Map.Load, this.onMapLoad.bind(this))
@@ -406,6 +458,16 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			requestAnimationFrame(this.render.bind(this))
+		},
+
+		/**
+		 * Resizes the layout on window resize events. To be overridden.
+		 * 
+		 * @param {Number} width The Layout width.
+		 * @param {Number} height The Layout height.
+		 */
+		resize: function(width, height) {
+			// to be overridden
 		},
 
 		/**
@@ -463,6 +525,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		initialize: function(params) {
 
+			$('#layout').addClass('classic')
+
 			var w = this.width / 2
 			var h = this.height / 2
 
@@ -505,6 +569,21 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			cube.position.set(-128, 128, 0)
 			this.scene.add(cube)
 			this.views[0].camera.lookAt(cube.position)
+		},
+
+		/**
+		 * Resizes all Views based on the window size.
+		 * 
+		 * @param {jQuery.Event} event The resize event.
+		 */
+		resize: function(width, height) {
+
+			var w = width / 2, h = height / 2
+
+			this.views[0].setViewport(new THREE.Vector4(0, h, w, h))
+			this.views[1].setViewport(new THREE.Vector4(w, h, w, h))
+			this.views[2].setViewport(new THREE.Vector4(0, 0, w, h))
+			this.views[3].setViewport(new THREE.Vector4(w, 0, w, h))
 		}
 	})
 
