@@ -136,7 +136,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.target = params.target
 			this.offset = params.position
 
-			this.fov = params.orthographicFov || 2048
+			this.fov = params.orthographicFov || 1024
 			this.lastFov = this.fov
 
 			var w = this.fov
@@ -227,7 +227,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.fov = params.perspectiveFov || 60
 
-			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
+			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
 			this.camera.position.copy(params.position)
 			this.camera.up.set(0, 0, 1)
 			this.camera.lookAt(new THREE.Vector3(0, 1024, 0))
@@ -468,15 +468,14 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapLoad: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				var entity = map.entities.at(i)
+				this.scene.add(map.entities.at(i).update().mesh)
 
-				for ( var j = 0; j < entity.brushes.length; j++) {
-					var brush = entity.brushes.at(j)
-					this.scene.add(brush.mesh)
-				}
 			}
 
-			this.views[0].camera.position = new THREE.Vector3()
+			var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
+
+			this.views[0].camera.position.copy(center)
+			this.views[0].camera.lookAt(center.setY(center.y - 1024))
 		},
 
 		/**
@@ -485,12 +484,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapUnload: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				var entity = map.entities.at(i)
-
-				for ( var j = 0; j < entity.brushes.length; j++) {
-					var brush = entity.brushes.at(j)
-					this.scene.remove(brush.mesh)
-				}
+				this.scene.remove(entity.at(i).mesh)
 			}
 		}
 	})

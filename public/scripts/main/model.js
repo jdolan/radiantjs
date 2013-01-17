@@ -65,6 +65,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * Backbone initialization.
 		 */
 		initialize: function(attribtues, options) {
+			this.brush = null
 			this.plane = null
 			this.vertices = null
 
@@ -83,16 +84,13 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 */
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
+			this.entity = null
+
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry/*
-													 * ,
-													 * Radiant.Material.Common.caulk
-													 */)
-			this.mesh.up.set(0, 0, 1)
 		},
 
 		/**
-		 * Updates the geometry for this Brush.
+		 * Updates the Geometry for this Brush.
 		 */
 		update: function() {
 
@@ -131,11 +129,6 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			}
 			this.surfaces.remove(culledSurfaces)
 
-			this.geometry.mergeVertices()
-			this.geometry.computeBoundingSphere()
-
-			this.mesh.updateMorphTargets()
-
 			return this
 		}
 	})
@@ -158,6 +151,33 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 */
 		initialize: function(attributes, options) {
 			this.brushes = new Backbone.Collection()
+
+			this.geometry = new THREE.Geometry()
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Lines.wireframe)
+
+			this.mesh.up.set(0, 0, 1)
+		},
+
+		/**
+		 * Updates the Geometry and Mesh for this Entity.
+		 */
+		update: function() {
+
+			this.geometry.vertices.length = 0
+			this.geometry.faces.length = 0
+			this.geometry.faceVertexUvs[0].length = 0
+
+			for ( var i = 0; i < this.brushes.length; i++) {
+				var brush = this.brushes.at(i).update()
+				THREE.GeometryUtils.merge(this.geometry, brush.geometry)
+			}
+
+			this.geometry.mergeVertices()
+			this.geometry.computeBoundingSphere()
+
+			this.mesh.updateMorphTargets()
+
+			return this
 		},
 
 		/**
@@ -267,7 +287,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 			}
 
-			return brush.update()
+			return brush
 		},
 
 		/**

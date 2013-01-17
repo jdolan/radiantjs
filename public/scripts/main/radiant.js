@@ -58,6 +58,6 @@ if (Radiant.Test) {
 } else {
 	require([ 'Radiant.Controller' ], function() {
 		window.radiant = new Radiant.Controller.Application({})
-		window.radiant.loadMap('media/maps/construct.map')
+		window.radiant.loadMap('media/maps/torn.map')
 	})
 }
