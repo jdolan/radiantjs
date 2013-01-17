@@ -114,9 +114,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 							var face = new THREE.Face3(0, j - 1, j, surface.plane.normal)
 							this.geometry.faces.push(face)
 
-							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
-							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
-							this.geometry.faceVertexUvs[0].push(new THREE.Vector2(0, 1))
+							var st0 = new THREE.Vector2(0, 1)
+							var st1 = new THREE.Vector2(0, 1)
+							var st2 = new THREE.Vector2(0, 1)
+
+							this.geometry.faceVertexUvs[0].push([ st0, st1, st2 ])
 						}
 					}
 				} else {
