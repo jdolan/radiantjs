@@ -40,6 +40,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			KeyZoomOut: '+',
 			KeySurfaceInspector: 'S',
 			KeyEntityInspector: 'n',
+			CameraMovementSpeed: 2.0,
 			FreelookSensitivity: 0.1,
 			FreelookInvert: false,
 			FollowPerspective: true

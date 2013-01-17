@@ -232,11 +232,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.boom = new THREE.Object3D()
 			this.boom.position.copy(params.position)
 			this.boom.up.set(0, 0, 1)
+			this.boom.lookAt(new THREE.Vector3(0, 1, 0).add(params.position))
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
-
-			var north = new THREE.Vector3(0, 1, 0).add(params.position)
-			this.boom.lookAt(north)
 
 			this.boom.add(this.camera)
 			this.scene.add(this.boom)
@@ -253,20 +251,24 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				var k = String.fromCharCode(e.which)
 				var prefs = self.layout.application.preferences
 
-				if (k == prefs.get('KeyForward')) {
-					self.velocity.z--
-				} else if (k == prefs.get('KeyBack')) {
-					self.velocity.z++
-				}
-
 				if (self.freelook) {
-					if (k == prefs.get('KeyMoveLeft')) {
+					if (k == prefs.get('KeyForward')) {
+						self.velocity.z--
+						self.velocity.y += self.camera.rotation.x
+					} else if (k == prefs.get('KeyBack')) {
+						self.velocity.z++
+						self.velocity.y -= self.camera.rotation.x
+					} else if (k == prefs.get('KeyMoveLeft')) {
 						self.velocity.x--
 					} else if (k == prefs.get('KeyMoveRight')) {
 						self.velocity.x++
 					}
 				} else {
-					if (k == prefs.get('KeyMoveUp')) {
+					if (k == prefs.get('KeyForward')) {
+						self.velocity.z--
+					} else if (k == prefs.get('KeyBack')) {
+						self.velocity.z++
+					} else if (k == prefs.get('KeyMoveUp')) {
 						self.velocity.y++
 					} else if (k == prefs.get('KeyMoveDown')) {
 						self.velocity.y--
@@ -285,17 +287,15 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.on('mousemove', function(e) {
 				if (self.freelook) {
 					var s = self.layout.application.preferences.get('FreelookSensitivity')
+					var i = self.layout.application.preferences.get('FreelookInvert')
 
-					self.avelocity.y += (e.screenX - self.lastMousemove.x) * s
+					var yaw = (e.screenX - self.lastMousemove.x) * s
+					self.avelocity.y += yaw
 
-					if (self.layout.application.preferences.get('FreelookInvert')) {
-						self.avelocity.x += (e.screenY - self.lastMousemove.y) * s
-					} else {
-						self.avelocity.x -= (e.screenY - self.lastMousemove.y) * s
-					}
+					var pitch = (e.screenY - self.lastMousemove.y) * (i ? -s : s)
+					self.avelocity.x -= pitch
 
-					self.lastMousemove.x = e.screenX
-					self.lastMousemove.y = e.screenY
+					self.lastMousemove.set(e.screenX, e.screenY)
 				}
 			})
 
@@ -303,8 +303,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				if (e.which == 3) {
 					self.freelook = !self.freelook
 					if (self.freelook) {
-						self.lastMousemove.x = e.screenX
-						self.lastMousemove.y = e.screenY
+						self.lastMousemove.set(e.screenX, e.screenY)
 					}
 				} else if (e.which == 1 && e.shiftKey) {
 					console.debug('select brush')
@@ -328,7 +327,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
-				this.boom.translate(3, this.velocity.clone())
+				var s = this.layout.application.preferences.get('CameraMovementSpeed')
+				this.boom.translate(s, this.velocity.clone())
+
 				this.boom.position.clamp(-16384, 16384)
 			}
 
@@ -340,8 +341,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			if (this.avelocity.x || this.avelocity.y) {
 				var rotation = this.avelocity.clone().multiplyScalar(Math.PI / 180)
+
 				this.boom.rotation.y += rotation.y
 				this.camera.rotation.x += rotation.x
+
+				var half = Math.PI / 2
+				this.camera.rotation.x = THREE.Math.clamp(this.camera.rotation.x, -half, half)
 			}
 		},
 
@@ -370,15 +375,14 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 		this.application = params.application
 
-		params.canvas = params.canvas || $('#layout > canvas')[0]
-
 		this.width = $(window).width()
 		this.height = $(window).height()
 
 		this.views = new Array()
 
-		this.renderer = new THREE.WebGLRenderer(params)
+		params.canvas = params.canvas || $('#layout > canvas')[0]
 
+		this.renderer = new THREE.WebGLRenderer(params)
 		if (this.renderer.getContext()) {
 
 			this.renderer.autoClear = false
@@ -388,7 +392,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.initialize(params)
 
-			this.trapEvents()
+			this.bindEvents()
 		} else {
 			console.error('Failed to initialize WebGL context')
 		}
@@ -407,9 +411,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		},
 
 		/**
-		 * Traps window events, Radiant.Event and enters the rendering loop.
+		 * Binds to window events, Radiant.Event and enters the rendering loop.
 		 */
-		trapEvents: function() {
+		bindEvents: function() {
 
 			$(window).on('contextmenu', function(e) {
 				e.preventDefault()
@@ -421,7 +425,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				if (width != self.width || height != self.height) {
 
 					self.renderer.setSize(width, height)
-					self.resize(width, height)
+					self.onResize(width, height)
 
 					self.width = width
 					self.height = height
@@ -467,7 +471,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 * @param {Number} width The Layout width.
 		 * @param {Number} height The Layout height.
 		 */
-		resize: function(width, height) {
+		onResize: function(width, height) {
 			// to be overridden
 		},
 
@@ -482,9 +486,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
 
-			for (var i = 0; i < this.views.length; i++) {
+			for ( var i = 0; i < this.views.length; i++) {
 				var view = this.views[0]
-				
+
 				if (view instanceof module.View.Perspective) {
 					view.boom.position.copy(center)
 					view.boom.lookAt(center.setY(center.y + 1))
@@ -564,21 +568,15 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				viewport: new THREE.Vector4(w, 0, w, h),
 				position: new THREE.Vector3(0, -1, 0)
 			})))
-
-			/*
-			 * var geometry = new THREE.CubeGeometry(64, 96, 32) var cube = new
-			 * THREE.Mesh(geometry, Radiant.Material.Common.hint)
-			 * cube.position.set(-128, 128, 0) this.scene.add(cube)
-			 * this.views[0].camera.lookAt(cube.position)
-			 */
 		},
 
 		/**
 		 * Resizes all Views based on the window size.
 		 * 
-		 * @param {jQuery.Event} event The resize event.
+		 * @param {Number} width The new Layout width.
+		 * @param {Number} height The new Layout height.
 		 */
-		resize: function(width, height) {
+		onResize: function(width, height) {
 
 			var w = width / 2, h = height / 2
 
