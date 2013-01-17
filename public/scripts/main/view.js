@@ -42,10 +42,26 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		/**
 		 * Updates this View. This is called once per frame. To be overridden.
 		 * 
-		 * @param {Number} delta The length of the frame (milliseconds / 16).
+		 * @param {Number} time The current time.
 		 */
-		update: function(delta) {
+		update: function(time) {
 			// to be overridden
+		},
+
+		/**
+		 * Renders this view. The underlying implementation is given an
+		 * opportunity to act on the frame via <code>update</code>.
+		 * 
+		 * @param {Number} time The current time in milliseconds.
+		 */
+		render: function(time) {
+
+			this.update(time)
+
+			var v = this.viewport
+			this.renderer.setViewport(v.x, v.y, v.z, v.w)
+
+			this.renderer.render(this.scene, this.camera)
 		},
 
 		/**
@@ -59,27 +75,6 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.aspect = viewport.z / viewport.w
 
 			// to be overridden
-		},
-
-		/**
-		 * Renders this view. The underlying implementation is given an
-		 * opportunity to act on the frame via <code>update</code>.
-		 * 
-		 * @param {Number} time The current time in milliseconds.
-		 */
-		render: function(time) {
-
-			if (time > this.time) {
-				this.update((time - this.time) / 16)
-				this.time = time
-			} else {
-				console.warn('Invalid time for requestRenderFrame')
-			}
-
-			var v = this.viewport
-			this.renderer.setViewport(v.x, v.y, v.z, v.w)
-
-			this.renderer.render(this.scene, this.camera)
 		},
 
 		/**
@@ -171,9 +166,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		/**
 		 * Updates this View. This is called once per frame.
 		 * 
-		 * @param {Number} delta The length of the frame (milliseconds / 16).
+		 * @param {Number} time The current time.
 		 */
-		update: function(delta) {
+		update: function(time) {
 
 			if (this.target) {
 				if (this.layout.application.preferences.get('FollowPerspective')) {
@@ -315,16 +310,14 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		/**
 		 * Updates this View. This is called once per frame.
 		 * 
-		 * @param {Number} delta The length of the frame (milliseconds / 16).
+		 * @param {Number} time The current time.
 		 */
-		update: function(delta) {
-
-			var deceleration = 0.85//THREE.Math.clamp(0.85 * delta, 0.1, 2.0)
+		update: function(time) {
 
 			if (this.velocity.length() < 0.15) {
 				this.velocity.clear()
 			} else {
-				this.velocity.multiplyScalar(deceleration)
+				this.velocity.multiplyScalar(0.85)
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
@@ -335,7 +328,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			if (this.rotation.length() < 0.15) {
 				this.rotation.clear()
 			} else {
-				this.rotation.multiplyScalar(deceleration)
+				this.rotation.multiplyScalar(0.85)
 			}
 
 			if (this.rotation.x || this.rotation.y) {
@@ -563,11 +556,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				position: new THREE.Vector3(0, 0, -1)
 			})))
 
-			var geometry = new THREE.CubeGeometry(64, 96, 32)
-			var cube = new THREE.Mesh(geometry, Radiant.Material.Common.hint)
-			cube.position.set(-128, 128, 0)
-			this.scene.add(cube)
-			this.views[0].camera.lookAt(cube.position)
+			/*
+			 * var geometry = new THREE.CubeGeometry(64, 96, 32) var cube = new
+			 * THREE.Mesh(geometry, Radiant.Material.Common.hint)
+			 * cube.position.set(-128, 128, 0) this.scene.add(cube)
+			 * this.views[0].camera.lookAt(cube.position)
+			 */
 		},
 
 		/**
