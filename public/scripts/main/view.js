@@ -91,7 +91,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			if (/mouse(up|down)/.test(event)) {
 				var self = this
 				$(self.renderer.domElement).on(event, function(e) {
-					var x = e.offsetX, y = e.target.height - e.offsetY
+					var x = e.screenX, y = e.target.height - e.screenY
 					if (x > self.viewport.x && x < (self.viewport.x + self.viewport.z)) {
 						if (y > self.viewport.y && y < (self.viewport.y + self.viewport.w)) {
 							return handler(e)
@@ -403,7 +403,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		trapEvents: function() {
 
-			$(this.renderer.domElement).on('contextmenu', function(e) {
+			$(window).on('contextmenu', function(e) {
 				e.preventDefault()
 			})
 
