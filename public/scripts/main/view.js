@@ -227,15 +227,22 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.fov = params.perspectiveFov || 60
 
-			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
-			this.camera.position.copy(params.position)
-			this.camera.up.set(0, 0, 1)
-			this.camera.lookAt(new THREE.Vector3(0, 1024, 0))
+			params.position = params.position || new THREE.Vector3()
 
-			this.scene.add(this.camera)
+			this.boom = new THREE.Object3D()
+			this.boom.position.copy(params.position)
+			this.boom.up.set(0, 0, 1)
+
+			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
+
+			var north = new THREE.Vector3(0, 1, 0).add(params.position)
+			this.boom.lookAt(north)
+
+			this.boom.add(this.camera)
+			this.scene.add(this.boom)
 
 			this.velocity = new THREE.Vector3()
-			this.rotation = new THREE.Vector3()
+			this.avelocity = new THREE.Vector3()
 
 			this.freelook = false
 			this.lastMousemove = new THREE.Vector2()
@@ -264,13 +271,13 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 					} else if (k == prefs.get('KeyMoveDown')) {
 						self.velocity.y--
 					} else if (k == prefs.get('KeyLookUp')) {
-						self.rotation.x++
+						self.avelocity.x++
 					} else if (k == prefs.get('KeyLookDown')) {
-						self.rotation.x--
+						self.avelocity.x--
 					} else if (k == prefs.get('KeyLookLeft')) {
-						self.rotation.y++
+						self.avelocity.y--
 					} else if (k == prefs.get('KeyLookRight')) {
-						self.rotation.y--
+						self.avelocity.y++
 					}
 				}
 			})
@@ -279,12 +286,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				if (self.freelook) {
 					var s = self.layout.application.preferences.get('FreelookSensitivity')
 
-					self.rotation.y -= (e.screenX - self.lastMousemove.x) * s
+					self.avelocity.y += (e.screenX - self.lastMousemove.x) * s
 
 					if (self.layout.application.preferences.get('FreelookInvert')) {
-						self.rotation.x += (e.screenY - self.lastMousemove.y) * s
+						self.avelocity.x += (e.screenY - self.lastMousemove.y) * s
 					} else {
-						self.rotation.x -= (e.screenY - self.lastMousemove.y) * s
+						self.avelocity.x -= (e.screenY - self.lastMousemove.y) * s
 					}
 
 					self.lastMousemove.x = e.screenX
@@ -321,19 +328,20 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
-				this.camera.position = this.camera.localToWorld(this.velocity.clone())
-				this.camera.position.clamp(-16384, 16384)
+				this.boom.translate(3, this.velocity.clone())
+				this.boom.position.clamp(-16384, 16384)
 			}
 
-			if (this.rotation.length() < 0.15) {
-				this.rotation.clear()
+			if (this.avelocity.length() < 0.15) {
+				this.avelocity.clear()
 			} else {
-				this.rotation.multiplyScalar(0.85)
+				this.avelocity.multiplyScalar(0.85)
 			}
 
-			if (this.rotation.x || this.rotation.y) {
-				var rotation = this.rotation.clone().multiplyScalar(Math.PI / 180)
-				this.camera.rotation.add(rotation)
+			if (this.avelocity.x || this.avelocity.y) {
+				var rotation = this.avelocity.clone().multiplyScalar(Math.PI / 180)
+				this.boom.rotation.y += rotation.y
+				this.camera.rotation.x += rotation.x
 			}
 		},
 
@@ -439,14 +447,15 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.renderer.clear()
 
 			for ( var i = 0; i < this.views.length; i++) {
+				var view = this.views[i]
 
-				if (this.views[i] instanceof module.View.Orthographic) {
+				if (view instanceof module.View.Orthographic) {
 					this.scene.overrideMaterial = Radiant.Material.Lines.wireframe
 				} else {
 					this.scene.overrideMaterial = undefined
 				}
 
-				this.views[i].render(time)
+				view.render(time)
 			}
 
 			requestAnimationFrame(this.render.bind(this))
@@ -469,13 +478,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			for ( var i = 0; i < map.entities.length; i++) {
 				this.scene.add(map.entities.at(i).update().mesh)
-
 			}
 
 			var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
 
-			this.views[0].camera.position.copy(center)
-			this.views[0].camera.lookAt(center.setY(center.y - 1024))
+			for (var i = 0; i < this.views.length; i++) {
+				var view = this.views[0]
+				
+				if (view instanceof module.View.Perspective) {
+					view.boom.position.copy(center)
+					view.boom.lookAt(center.setY(center.y + 1))
+					view.camera.rotation.clear()
+				}
+			}
 		},
 
 		/**
