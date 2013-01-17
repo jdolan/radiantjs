@@ -136,7 +136,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.target = params.target
 			this.offset = params.position
 
-			this.fov = params.orthographicFov || 1024
+			this.fov = params.orthographicFov || 2048
 			this.lastFov = this.fov
 
 			var w = this.fov
@@ -225,7 +225,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		initialize: function(params) {
 
-			this.fov = params.perspectiveFov || 50
+			this.fov = params.perspectiveFov || 60
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 16384)
 			this.camera.position.copy(params.position)
@@ -541,19 +541,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			// Orthographic XY (top-down)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, h, w, h),
-				position: new THREE.Vector3(0, -1, 0)
+				position: new THREE.Vector3(0, 0, 1)
 			})))
 
 			// Orthographic YZ (left)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(0, 0, w, h),
-				position: new THREE.Vector3(-1, 0, 0)
+				position: new THREE.Vector3(1, 0, 0)
 			})))
 
 			// Orthographic XZ (back)
 			this.views.push(new module.View.Orthographic($.extend(params, {
 				viewport: new THREE.Vector4(w, 0, w, h),
-				position: new THREE.Vector3(0, 0, -1)
+				position: new THREE.Vector3(0, -1, 0)
 			})))
 
 			/*

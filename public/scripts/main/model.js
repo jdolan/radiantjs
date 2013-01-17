@@ -84,7 +84,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		initialize: function(attributes, options) {
 			this.surfaces = new Backbone.Collection()
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry/*, Radiant.Material.Common.caulk*/)
+			this.mesh = new THREE.Mesh(this.geometry/*
+													 * ,
+													 * Radiant.Material.Common.caulk
+													 */)
+			this.mesh.up.set(0, 0, 1)
 		},
 
 		/**
@@ -128,7 +132,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			this.surfaces.remove(culledSurfaces)
 
 			this.geometry.mergeVertices()
-			this.geometry.computeBoundingBox()
+			this.geometry.computeBoundingSphere()
+
+			this.mesh.updateMorphTargets()
 
 			return this
 		}
