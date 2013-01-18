@@ -2,7 +2,7 @@
 
 @import url('http://fonts.googleapis.com/css?family=Open Sans&subset=latin');
 
-#layout > canvas {
+#layout>canvas {
 	bottom: 0;
 	left: 0;
 	position: absolute;
@@ -54,6 +54,12 @@
 	z-index: 2;
 }
 
+#toolbar #statistics {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
 button {
 	background-color: rgba(255, 255, 255, 0.15);
 	border: 1px solid #333;
@@ -94,7 +100,6 @@ ul.menu {
 	background-color: rgba(0, 0, 0, 0.666);
 	border-bottom: 1px solid #333;
 	line-height: 1.5em;
-	width: 100%;
 }
 
 ul.menu * {

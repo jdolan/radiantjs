@@ -311,6 +311,15 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 					console.debug('select face')
 				}
 			})
+
+			$(this.layout.application).on(Radiant.Event.Map.Load, function(event, map) {
+
+				var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
+
+				self.boom.position.copy(center)
+				self.boom.lookAt(center.setY(center.y + 1))
+				self.camera.rotation.clear()
+			})
 		},
 
 		/**
@@ -340,7 +349,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			if (this.avelocity.x || this.avelocity.y) {
-				var rotation = this.avelocity.clone().multiplyScalar(Math.PI / 180)
+				var s = this.layout.application.preferences.get('CameraRotationSpeed')
+				var rotation = this.avelocity.clone().multiplyScalar(s * Math.PI / 180)
 
 				this.boom.rotation.y += rotation.y
 				this.camera.rotation.x += rotation.x
@@ -391,7 +401,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.scene = new THREE.Scene()
 
 			this.initialize(params)
-			
+
 			this.statistics = new Radiant.Ui.Statistics(params)
 
 			this.bindEvents()
@@ -443,14 +453,11 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		},
 
 		/**
-		 * Renders all Views in this Layout. The Renderer is manually cleared
-		 * once before the Views are repainted.
+		 * Renders all Views in this Layout.
 		 * 
 		 * @param {Number} time The current time in milliseconds.
 		 */
 		render: function(time) {
-
-			this.renderer.clear()
 
 			for ( var i = 0; i < this.views.length; i++) {
 				var view = this.views[i]
@@ -463,7 +470,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 				view.render(time)
 			}
-			
+
 			this.statistics.frames++
 
 			requestAnimationFrame(this.render.bind(this))
@@ -485,19 +492,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapLoad: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				this.scene.add(map.entities.at(i).update().mesh)
-			}
-
-			var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
-
-			for ( var i = 0; i < this.views.length; i++) {
-				var view = this.views[0]
-
-				if (view instanceof module.View.Perspective) {
-					view.boom.position.copy(center)
-					view.boom.lookAt(center.setY(center.y + 1))
-					view.camera.rotation.clear()
-				}
+				this.scene.add(map.entities.at(i).mesh)
 			}
 		},
 
@@ -507,7 +502,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapUnload: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				this.scene.remove(entity.at(i).mesh)
+				this.scene.remove(map.entities.at(i).mesh)
 			}
 		}
 	})

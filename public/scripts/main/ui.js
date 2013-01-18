@@ -213,9 +213,14 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 		bindEvents: function() {
 			var self = this
 
+			self.frames = 0
 			setInterval(function() {
-				self.framerate.html(self.frames.toFixed(0) + 'fps')
-				self.frames = 0
+				if (self.frames) {
+					self.framerate.html(self.frames.toFixed(0) + 'fps')
+					self.frames = 0
+				} else {
+					self.framerate.html('')
+				}
 			}, 1000)
 		}
 	})

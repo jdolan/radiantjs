@@ -40,7 +40,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			KeyZoomOut: '+',
 			KeySurfaceInspector: 'S',
 			KeyEntityInspector: 'n',
-			CameraMovementSpeed: 2.0,
+			CameraMovementSpeed: 5.5,
+			CameraRotationSpeed: 2.0,
 			FreelookSensitivity: 0.1,
 			FreelookInvert: false,
 			FollowPerspective: true
@@ -71,6 +72,18 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			this.vertices = null
 
 			this.textureMatrix = new THREE.Matrix4()
+		},
+
+		/**
+		 * @return {THREE.Face3} The Face3 for the specified vertices.
+		 */
+		createFace: function(a, b, c) {
+			var face = new THREE.Face3(a, b, c, this.plane.normal)
+
+			var color = 0.75 + (0.25 / (Math.abs(this.plane.normal.z) + 1))
+			face.color.setRGB(color, color, color)
+
+			return face
 		}
 	})
 
@@ -114,8 +127,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 						this.geometry.vertices.push(surface.vertices[j])
 
 						if (j >= 2) {
-							var face = new THREE.Face3(0, j - 1, j, surface.plane.normal)
-							this.geometry.faces.push(face)
+							this.geometry.faces.push(surface.createFace(0, j - 1, j))
 
 							var st0 = new THREE.Vector2(0, 1)
 							var st1 = new THREE.Vector2(0, 1)
@@ -154,7 +166,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			this.brushes = new Backbone.Collection()
 
 			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Lines.wireframe)
+			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
 
 			this.mesh.up.set(0, 0, 1)
 		},
@@ -169,8 +181,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			this.geometry.faceVertexUvs[0].length = 0
 
 			for ( var i = 0; i < this.brushes.length; i++) {
-				var brush = this.brushes.at(i).update()
-				THREE.GeometryUtils.merge(this.geometry, brush.geometry)
+				THREE.GeometryUtils.merge(this.geometry, this.brushes.at(i).geometry)
 			}
 
 			this.geometry.mergeVertices()
@@ -288,7 +299,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 			}
 
-			return brush
+			return brush.update()
 		},
 
 		/**
@@ -319,9 +330,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 			}
 
-			// console.debug(entity.toString())
-
-			return entity
+			return entity.update()
 		},
 
 		/**
