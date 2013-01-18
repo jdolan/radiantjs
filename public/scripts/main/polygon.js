@@ -18,7 +18,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		/**
 		 * Constant for Plane intersections (clipping).
 		 */
-		Epsilon: Number.MIN_VALUE
+		Epsilon: 0.01
 	}
 
 	$.extend(THREE.Vector2.prototype, {
@@ -118,12 +118,14 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 * 
 		 * @param {Array} planes An Array of Planes to clip against.
 		 * @param {Array} vertices The Array of Vector3 to clip.
+		 * @param {Number} epsilon The Epsilon value for sidedness.
 		 * 
 		 * @return {Array} The resulting Array of Vector3.
 		 */
-		clip: function(planes, vertices) {
+		clip: function(planes, vertices, epsilon) {
 
 			vertices = vertices || this.quad()
+			var e = epsilon || module.Epsilon
 
 			for ( var i = 0; i < planes.length; i++) {
 				var plane = planes[i]
@@ -142,11 +144,11 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 					var dist0 = plane.distanceToPoint(vert0)
 					var dist1 = plane.distanceToPoint(vert1)
 
-					if (dist0 >= 0) {
+					if (dist0 >= -e) {
 						newVertices.push(vert0.clone())
 					}
 
-					if ((dist0 >= 0 && dist1 < 0) || (dist0 < 0 && dist1 >= 0)) {
+					if ((dist0 >= -e && dist1 < e) || (dist0 < e && dist1 >= -e)) {
 
 						var frac = dist0 / (dist0 - dist1)
 
