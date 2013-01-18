@@ -391,6 +391,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.scene = new THREE.Scene()
 
 			this.initialize(params)
+			
+			this.statistics = new Radiant.Ui.Statistics(params)
 
 			this.bindEvents()
 		} else {
@@ -461,6 +463,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 				view.render(time)
 			}
+			
+			this.statistics.frames++
 
 			requestAnimationFrame(this.render.bind(this))
 		},
@@ -548,7 +552,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			})))
 
 			$.extend(params, {
-				target: this.views[0].camera
+				target: this.views[0].boom
 			})
 
 			// Orthographic XY (top-down)

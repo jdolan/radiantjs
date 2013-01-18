@@ -191,6 +191,35 @@ define('Radiant.Ui', [ 'Radiant.Util' ], function() {
 		}
 	})
 
+	/**
+	 * The Statistics report.
+	 */
+	module.Statistics = function(params) {
+
+		this.application = params.application
+
+		this.statisics = $('#statistics')
+		this.framerate = $('.framerate', this.statistics)
+
+		this.bindEvents()
+	}
+
+	$.extend(module.Statistics.prototype, {
+		constructor: module.Statistics,
+
+		/**
+		 * Binds to window events, Radiant.Event, etc.
+		 */
+		bindEvents: function() {
+			var self = this
+
+			setInterval(function() {
+				self.framerate.html(self.frames.toFixed(0) + 'fps')
+				self.frames = 0
+			}, 1000)
+		}
+	})
+
 	window.Radiant.Ui = module
 
 	return module
