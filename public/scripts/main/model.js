@@ -79,7 +79,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * Updates the Brush Geometry to include this Surface.
 		 */
 		update: function() {
-			var color = 0.75 + (0.25 / (Math.abs(this.plane.normal.z) + 1))
+			var color = new THREE.Color()
+
+			color.r = 0.85 + (0.15 / (Math.abs(this.plane.normal.x) + 1))
+			color.g = 0.85 + (0.15 / (Math.abs(this.plane.normal.y) + 1))
+			color.b = 0.85 + (0.15 / (Math.abs(this.plane.normal.z) + 1))
 
 			var meshGeometry = this.brush.meshGeometry
 			var lineGeometry = this.brush.lineGeometry
@@ -91,9 +95,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 				if (i >= 2) {
 					var a = index, b = index + i - 1, c = index + i
-					var face = new THREE.Face3(a, b, c, this.plane.normal)
-
-					face.color.setRGB(color, color, color)
+					var face = new THREE.Face3(a, b, c, this.plane.normal, color)
 
 					meshGeometry.faces.push(face)
 
