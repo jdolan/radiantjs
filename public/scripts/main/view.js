@@ -11,30 +11,49 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 	var module = {}
 
 	/**
-	 * Axis render arrows indicating forward, right and up.
+	 * Axis render arrows indicating forward, right and up. Axis can be added as
+	 * children to other Object3Ds, or independently (i.e. in a different Scene)
+	 * with frequent calls to <code>update</code>.
 	 * 
 	 * @constructor
 	 * @augments {THREE.Object3D}
 	 * 
-	 * @param {Number} len The Axis arrow length.
+	 * @param {Object3D} object The Object3D to render Axis for.
+	 * @param {Number} length The Axis arrow length.
 	 */
-	module.Axis = function(length) {
+	module.Axis = function(object, length) {
 
 		THREE.Object3D.call(this)
 
+		this.object = object
 		this.length = length || 64
 
-		var pos = this.position, len = this.length
-		this.add(new THREE.ArrowHelper(module.Axis.__forward, pos, len, 0x00ff00))
-		this.add(new THREE.ArrowHelper(module.Axis.__right, pos, len, 0x0000ff))
-		this.add(new THREE.ArrowHelper(module.Axis.__up, pos, len, 0xff0000))
+		this.add(new THREE.ArrowHelper(module.Axis.__forward, null, this.length, 0x00ff00))
+		this.add(new THREE.ArrowHelper(module.Axis.__right, null, this.length, 0x0000ff))
+		this.add(new THREE.ArrowHelper(module.Axis.__up, null, this.length, 0xff0000))
 	}
 
 	module.Axis.__forward = new THREE.Vector3(0, 0, -1)
 	module.Axis.__right = new THREE.Vector3(1, 0, 0)
 	module.Axis.__up = new THREE.Vector3(0, 1, 0)
 
-	$.extend(module.Axis.prototype, THREE.Object3D.prototype)
+	module.Axis.prototype = Object.create(THREE.Object3D.prototype)
+
+	$.extend(module.Axis.prototype, {
+
+		/**
+		 * Updates the position and rotation of this Axis.
+		 */
+		update: function() {
+			this.matrix.identity()
+
+			var obj = this.object
+			while (obj) {
+				this.applyMatrix(obj.matrix)
+				obj = obj.parent
+			}
+		}
+	})
 
 	/**
 	 * Views are responsible for drawing a 2D or 3D area of the layout.
@@ -267,12 +286,13 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.boom.lookAt(new THREE.Vector3(0, 1, 0).add(params.position))
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
-			this.camera.add(new module.Axis())
-
 			this.boom.add(this.camera)
 
 			this.renderScene = params.perspectiveScene
 			this.renderScene.add(this.boom)
+
+			this.axis = new module.Axis(this.camera)
+			this.orthographicScene.add(this.axis)
 
 			this.velocity = new THREE.Vector3()
 			this.avelocity = new THREE.Vector3()
@@ -392,6 +412,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				var half = Math.PI / 2
 				this.camera.rotation.x = THREE.Math.clamp(this.camera.rotation.x, -half, half)
 			}
+
+			this.axis.update()
 		},
 
 		/**
