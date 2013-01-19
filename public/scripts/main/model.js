@@ -120,12 +120,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		this.surfaces = []
 
 		this.meshGeometry = new THREE.Geometry()
-		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Common.caulk)
-		this.mesh.frustumCulled = false
-
 		this.lineGeometry = new THREE.Geometry()
-		this.line = new THREE.Line(this.lineGeometry, Radiant.Material.Line.line, THREE.LinePieces)
-		this.line.frustumCulled = false
 	}
 
 	$.extend(module.Brush.prototype, {
@@ -163,11 +158,6 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				this.surfaces = _.without(this.surfaces, culledSurfaces)
 			}
 
-			this.meshGeometry.mergeVertices()
-			this.meshGeometry.computeBoundingSphere()
-
-			this.lineGeometry.computeBoundingSphere()
-
 			return this
 		}
 	})
@@ -188,9 +178,13 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 		this.brushes = []
 
-		this.geometry = new THREE.Geometry()
-		this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Mesh.entity)
-		this.line = new THREE.Mesh(this.geometry, Radiant.Material.Mesh.wireframe)
+		this.meshGeometry = new THREE.Geometry()
+		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Mesh.entity)
+		this.mesh.frustumCulled = false
+
+		this.lineGeometry = new THREE.Geometry()
+		this.line = new THREE.Line(this.lineGeometry, Radiant.Material.Line.line, THREE.LinePieces)
+		this.mesh.frustumCulled = false
 	}
 
 	$.extend(module.Entity.prototype, {
@@ -201,11 +195,32 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		update: function() {
 
 			if (this.brushes.length) {
-				this.geometry.vertices.length = 0
+
+				this.meshGeometry.vertices.length = 0
+				this.meshGeometry.faces.length = 0
+				this.meshGeometry.faceVertexUvs[0].length = 0
+
+				this.lineGeometry.vertices.length = 0
+
+				for ( var i = 0; i < this.brushes.length; i++) {
+					var brush = this.brushes[i]
+
+					THREE.GeometryUtils.merge(this.meshGeometry, brush.meshGeometry)
+					THREE.GeometryUtils.merge(this.lineGeometry, brush.lineGeometry)
+				}
+
+				this.mesh.material = Radiant.Material.Common.caulk
 			} else {
-				this.geometry = new THREE.CubeGeometry(24, 24, 24)
+				this.meshGeometry = this.lineGeometry = new THREE.CubeGeometry(24, 24, 24)
 				this.mesh.position = this.line.position = this.origin()
+
+				this.mesh.material = Radiant.Material.Mesh.entity
 			}
+
+			//this.meshGeometry.mergeVertices()
+			//this.meshGeometry.computeBoundingSphere()
+
+			//this.lineGeometry.computeBoundingSphere()
 
 			return this
 		},
@@ -300,6 +315,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		/**
 		 * Parses a Brush.
 		 * 
+		 * @param {Radiant.Model.Entity} The current Entity.
+		 * 
 		 * @return {Radiant.Model.Brush} The parsed Brush.
 		 */
 		parseBrush: function(entity) {
@@ -339,6 +356,8 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 		/**
 		 * Parses an Entity.
+		 * 
+		 * @param {Radiant.Model.Map} The current Map.
 		 * 
 		 * @return {Radiant.Model.Entity} The parsed Entity.
 		 */

@@ -523,17 +523,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			for ( var i = 0; i < map.entities.length; i++) {
 				var entity = map.entities[i]
 
-				if (entity.brushes.length) {
-					for ( var j = 0; j < entity.brushes.length; j++) {
-						var brush = entity.brushes[j]
-
-						this.perspectiveScene.add(brush.mesh)
-						this.orthographicScene.add(brush.line)
-					}
-				} else {
-					this.perspectiveScene.add(entity.mesh)
-					this.orthographicScene.add(entity.line)
-				}
+				this.perspectiveScene.add(entity.mesh)
+				this.orthographicScene.add(entity.line)
 			}
 		},
 
@@ -545,17 +536,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			for ( var i = 0; i < map.entities.length; i++) {
 				var entity = map.entities[i]
 
-				if (entity.brushes.length) {
-					for ( var j = 0; j < entity.brushes.length; j++) {
-						var brush = entity.brushes[j]
-
-						this.perspectiveScene.remove(brush.mesh)
-						this.orthographicScene.remove(brush.line)
-					}
-				} else {
-					this.perspectiveScene.remove(entity.mesh)
-					this.orthographicScene.remove(entity.line)
-				}
+				this.perspectiveScene.remove(entity.mesh)
+				this.orthographicScene.remove(entity.line)
 			}
 		}
 	})
