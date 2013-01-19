@@ -18,7 +18,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		/**
 		 * Constant for Plane intersections (clipping).
 		 */
-		Epsilon: 0.01
+		Epsilon: 0.001
 	}
 
 	$.extend(THREE.Vector2.prototype, {
@@ -148,7 +148,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 						newVertices.push(vert0.clone())
 					}
 
-					if ((dist0 >= -e && dist1 < e) || (dist0 < e && dist1 >= -e)) {
+					if ((dist0 > e && dist1 < -e) || (dist0 < -e && dist1 > e)) {
 
 						var frac = dist0 / (dist0 - dist1)
 

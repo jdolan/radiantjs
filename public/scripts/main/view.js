@@ -11,12 +11,40 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 	var module = {}
 
 	/**
+	 * Axis render arrows indicating forward, right and up.
+	 * 
+	 * @constructor
+	 * @augments {THREE.Object3D}
+	 * 
+	 * @param {Number} len The Axis arrow length.
+	 */
+	module.Axis = function(length) {
+
+		THREE.Object3D.call(this)
+
+		this.length = length || 64
+
+		var pos = this.position, len = this.length
+		this.add(new THREE.ArrowHelper(module.Axis.__forward, pos, len, 0x00ff00))
+		this.add(new THREE.ArrowHelper(module.Axis.__right, pos, len, 0x0000ff))
+		this.add(new THREE.ArrowHelper(module.Axis.__up, pos, len, 0xff0000))
+	}
+
+	module.Axis.__forward = new THREE.Vector3(0, 0, -1)
+	module.Axis.__right = new THREE.Vector3(1, 0, 0)
+	module.Axis.__up = new THREE.Vector3(0, 1, 0)
+
+	$.extend(module.Axis.prototype, THREE.Object3D.prototype)
+
+	/**
 	 * Views are responsible for drawing a 2D or 3D area of the layout.
 	 * 
 	 * @constructor
+	 * 
 	 * @param {Object} params The initialization parameters.
 	 */
 	module.View = function(params) {
+
 		this.layout = params.layout
 		this.renderer = params.renderer
 		this.viewport = params.viewport
@@ -235,6 +263,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.boom.lookAt(new THREE.Vector3(0, 1, 0).add(params.position))
 
 			this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, 0.1, 4096)
+			this.camera.add(new module.Axis())
 
 			this.boom.add(this.camera)
 			this.scene.add(this.boom)
@@ -458,6 +487,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 * @param {Number} time The current time in milliseconds.
 		 */
 		render: function(time) {
+
+			this.renderer.clear()
 
 			for ( var i = 0; i < this.views.length; i++) {
 				var view = this.views[i]

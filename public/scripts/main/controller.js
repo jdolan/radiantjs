@@ -105,7 +105,7 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 		params.application = this
 
 		this.preferences = new Radiant.Model.Preferences(params)
-		this.config = new Radiant.Model.Config(params)
+		this.game = new Radiant.Model.Game(params)
 		this.layout = new Radiant.View.Classic(params)
 		this.menu = new module.MainMenu(params)
 		this.map = new Radiant.Model.Map()

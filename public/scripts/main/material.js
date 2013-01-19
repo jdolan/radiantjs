@@ -13,9 +13,8 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Lines materials.
 	 */
 	module.Lines = {
-		grid: new THREE.MeshBasicMaterial({
-			color: 0x888888,
-			wireframe: true
+		line: new THREE.LineBasicMaterial({
+			color: 0x888888
 		}),
 		wireframe: new THREE.MeshBasicMaterial({
 			color: 0x222222,

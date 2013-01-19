@@ -13,7 +13,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	/**
 	 * Game configurations.
 	 */
-	module.Config = Backbone.Model.extend({
+	module.Game = Backbone.Model.extend({
 		defaults: {
 			Name: 'Unnamed Game',
 			LevelBounds: 8192,
@@ -69,21 +69,36 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		initialize: function(attribtues, options) {
 			this.brush = null
 			this.plane = null
+			this.color = null
 			this.vertices = null
 
 			this.textureMatrix = new THREE.Matrix4()
 		},
 
 		/**
-		 * @return {THREE.Face3} The Face3 for the specified vertices.
+		 * Adds this Surface to the specified Geometry.
+		 * 
+		 * @param {THREE.Geometry} The Geometry to add to.
 		 */
-		createFace: function(a, b, c) {
-			var face = new THREE.Face3(a, b, c, this.plane.normal)
-
+		addToGeometry: function(geometry) {
 			var color = 0.75 + (0.25 / (Math.abs(this.plane.normal.z) + 1))
-			face.color.setRGB(color, color, color)
 
-			return face
+			for ( var i = 0; i < this.vertices.length; i++) {
+				geometry.vertices.push(this.vertices[i])
+
+				if (i >= 2) {
+					var face = new THREE.Face3(0, i - 1, i, this.plane.normal)
+					face.color.setRGB(color, color, color)
+
+					geometry.faces.push(face)
+
+					var st0 = new THREE.Vector2(0, 1)
+					var st1 = new THREE.Vector2(0, 1)
+					var st2 = new THREE.Vector2(0, 1)
+
+					geometry.faceVertexUvs[0].push([ st0, st1, st2 ])
+				}
+			}
 		}
 	})
 
@@ -122,20 +137,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				var surface = this.surfaces.at(i)
 
 				surface.vertices = surface.plane.clip(planes, surface.vertices)
+
 				if (surface.vertices.length) {
-					for ( var j = 0; j < surface.vertices.length; j++) {
-						this.geometry.vertices.push(surface.vertices[j])
-
-						if (j >= 2) {
-							this.geometry.faces.push(surface.createFace(0, j - 1, j))
-
-							var st0 = new THREE.Vector2(0, 1)
-							var st1 = new THREE.Vector2(0, 1)
-							var st2 = new THREE.Vector2(0, 1)
-
-							this.geometry.faceVertexUvs[0].push([ st0, st1, st2 ])
-						}
-					}
+					surface.addToGeometry(this.geometry)
 				} else {
 					culledSurfaces.push(surface)
 				}
@@ -167,8 +171,6 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 			this.geometry = new THREE.Geometry()
 			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
-
-			this.mesh.up.set(0, 0, 1)
 		},
 
 		/**
@@ -193,10 +195,29 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		},
 
 		/**
+		 * @param {String} The key, e.g. <em>angle</em>.
+		 * 
+		 * @return {String|Number} The value for the specified key.
+		 */
+		getValue: function(key) {
+			return this.get('pairs')[key]
+		},
+
+		/**
+		 * Sets the key-value pair.
+		 * 
+		 * @param {String} key The key, e.g. <em>angle</em>
+		 * @param {String|Number} The value.
+		 */
+		setValue: function(key, value) {
+			this.get('pairs')[key] = value
+		},
+
+		/**
 		 * @return {String} The class name (e.g. 'func_rotating').
 		 */
 		classname: function() {
-			return this.get('pairs')['classname']
+			return this.getValue('classname')
 		},
 
 		/**
@@ -206,7 +227,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 */
 		origin: function() {
 			if (this.brushes.length == 0) {
-				return Radiant.Util.parseVector3(this.get('pairs')['origin'])
+				return Radiant.Util.parseVector3(this.getValue('origin'))
 			}
 			return null
 		},
