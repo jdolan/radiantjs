@@ -81,9 +81,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		update: function() {
 			var color = new THREE.Color()
 
-			color.r = 0.85 + (0.15 / (Math.abs(this.plane.normal.x) + 1))
-			color.g = 0.85 + (0.15 / (Math.abs(this.plane.normal.y) + 1))
-			color.b = 0.85 + (0.15 / (Math.abs(this.plane.normal.z) + 1))
+			color.r = 0.75 + (0.25 / (Math.abs(this.plane.normal.x) + 1))
+			color.g = 0.75 + (0.25 / (Math.abs(this.plane.normal.y) + 1))
+			color.b = 0.75 + (0.25 / (Math.abs(this.plane.normal.z) + 1))
 
 			var meshGeometry = this.brush.meshGeometry
 			var lineGeometry = this.brush.lineGeometry
