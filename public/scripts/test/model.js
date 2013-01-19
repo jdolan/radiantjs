@@ -58,19 +58,14 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 				expect(surfaces).toBe(132)
 			})
 
-			it('Can be combined into a single mesh efficiently', function() {
+			it('Can be updated efficiently', function() {
+				
 				var start = new Date().getTime()
-
-				var meshGeometry = new THREE.Geometry(), lineGeometry = new THREE.Geometry()
-				var brushes = map.worldspawn().brushes
-
-				for ( var i = 0; i < brushes.length; i++) {
-					THREE.GeometryUtils.merge(meshGeometry, brushes[i].meshGeometry)
-					THREE.GeometryUtils.merge(lineGeometry, brushes[i].lineGeometry)
-				}
-
+				map.worldspawn().update()
 				var end = new Date().getTime()
-				console.log(start, end, end - start)
+				
+				expect(end - start).toBeLessThan(50)
+				console.log('Construct worldspawn update', end - start)
 			})
 		})
 
@@ -99,20 +94,14 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 				expect(map.worldspawn().brushes.length).toBe(2031)
 			})
 
-			it('Can be combined into a single mesh efficiently', function() {
-
-				var meshGeometry = new THREE.Geometry(), lineGeometry = new THREE.Geometry()
-				var brushes = map.worldspawn().brushes
+			it('Can be updated efficiently', function() {
 
 				var start = new Date().getTime()
-
-				for ( var i = 0; i < brushes.length; i++) {
-					THREE.GeometryUtils.merge(meshGeometry, brushes[i].meshGeometry)
-					THREE.GeometryUtils.merge(lineGeometry, brushes[i].lineGeometry)
-				}
-
+				map.worldspawn().update()
 				var end = new Date().getTime()
-				console.log(start, end, end - start)
+				
+				expect(end - start).toBeLessThan(100)
+				console.log('Torn worldspawn update', end - start)
 			})
 		})
 	})
