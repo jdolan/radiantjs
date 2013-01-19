@@ -49,102 +49,124 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	})
 
 	/**
-	 * Surfaces are described by their texture and attributes. Every Surface
-	 * must belong to a Brush.
+	 * Surfaces are described by their plane, texture and attributes. Every
+	 * Surface must belong to a Brush.
 	 */
-	module.Surface = Backbone.Model.extend({
-		defaults: {
-			texture: 'common/caulk',
-			offsetS: 0,
-			offsetT: 0,
-			scaleS: 0,
-			scaleT: 0,
-			flags: 0,
-			value: 0
-		},
+	module.Surface = function() {
+
+		this.brush = null
+		this.plane = null
+
+		this.vertices = null
+
+		this.texture = 'common/caulk'
+
+		this.offsetS = 0
+		this.offsetT = 0
+
+		this.scaleS = 0
+		this.scaleT = 0
+
+		this.flags = 0
+		this.value = 0
+
+		this.textureMatrix = new THREE.Matrix4()
+	}
+
+	$.extend(module.Surface.prototype, {
 
 		/**
-		 * Backbone initialization.
+		 * Updates the Brush Geometry to include this Surface.
 		 */
-		initialize: function(attribtues, options) {
-			this.brush = null
-			this.plane = null
-			this.color = null
-			this.vertices = null
-
-			this.textureMatrix = new THREE.Matrix4()
-		},
-
-		/**
-		 * Adds this Surface to the specified Geometry.
-		 * 
-		 * @param {THREE.Geometry} The Geometry to add to.
-		 */
-		addToGeometry: function(geometry) {
+		update: function() {
 			var color = 0.75 + (0.25 / (Math.abs(this.plane.normal.z) + 1))
 
+			var meshGeometry = this.brush.meshGeometry
+			var lineGeometry = this.brush.lineGeometry
+
 			for ( var i = 0; i < this.vertices.length; i++) {
-				geometry.vertices.push(this.vertices[i])
+				meshGeometry.vertices.push(this.vertices[i])
 
 				if (i >= 2) {
 					var face = new THREE.Face3(0, i - 1, i, this.plane.normal)
 					face.color.setRGB(color, color, color)
 
-					geometry.faces.push(face)
+					meshGeometry.faces.push(face)
 
 					var st0 = new THREE.Vector2(0, 1)
 					var st1 = new THREE.Vector2(0, 1)
 					var st2 = new THREE.Vector2(0, 1)
 
-					geometry.faceVertexUvs[0].push([ st0, st1, st2 ])
+					meshGeometry.faceVertexUvs[0].push([ st0, st1, st2 ])
 				}
+
+				lineGeometry.vertices.push(this.vertices[i])
+				lineGeometry.vertices.push(this.vertices[(i + 1) % this.vertices.length])
 			}
 		}
 	})
 
 	/**
-	 * Brushes are comprised of 4 or more Surfaces. Each brush must belong to an
-	 * Entity (default is Worldspawn).
+	 * Brushes are comprised of 4 or more Surfaces. Each brush belongs to an
+	 * Entity. Geometry is accumulated at the Brush level: each Brush maintains
+	 * a Mesh Geometry and a Line Geometry to facilitate perspective and
+	 * orthographic views.
+	 * 
+	 * @constructor
 	 */
-	module.Brush = Backbone.Model.extend({
+	module.Brush = function() {
+
+		this.entity = null
+		this.surfaces = []
+
+		this.meshGeometry = new THREE.Geometry()
+		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Common.caulk)
+		this.mesh.frustumCulled = false
+
+		this.lineGeometry = new THREE.Geometry()
+		this.line = new THREE.Line(this.lineGeometry, Radiant.Material.Line.line, THREE.LinePieces)
+		this.line.frustumCulled = false
+	}
+
+	$.extend(module.Brush.prototype, {
 
 		/**
-		 * Backbone initialization.
-		 */
-		initialize: function(attributes, options) {
-			this.surfaces = new Backbone.Collection()
-			this.entity = null
-
-			this.geometry = new THREE.Geometry()
-		},
-
-		/**
-		 * Updates the Geometry for this Brush.
+		 * Updates all Geometry for this Brush.
 		 */
 		update: function() {
 
-			this.geometry.vertices.length = 0
-			this.geometry.faces.length = 0
-			this.geometry.faceVertexUvs[0].length = 0
+			this.meshGeometry.vertices.length = 0
+			this.meshGeometry.faces.length = 0
+			this.meshGeometry.faceVertexUvs[0].length = 0
+
+			this.lineGeometry.vertices.length = 0
 
 			var planes = []
 			for ( var i = 0; i < this.surfaces.length; i++) {
-				planes.push(this.surfaces.at(i).plane)
+				planes.push(this.surfaces[i].plane)
 			}
 
 			var culledSurfaces = []
 			for ( var i = 0; i < this.surfaces.length; i++) {
-				var surface = this.surfaces.at(i)
+				var surface = this.surfaces[i]
 
 				surface.vertices = surface.plane.clip(planes, surface.vertices)
 
 				if (surface.vertices.length) {
-					surface.addToGeometry(this.geometry)
+					surface.update()
 				} else {
 					culledSurfaces.push(surface)
 				}
 			}
-			this.surfaces.remove(culledSurfaces)
+
+			if (culledSurfaces.length) {
+				this.surfaces = _.without(this.surfaces, culledSurfaces)
+			}
+
+			this.meshGeometry.mergeVertices()
+			this.meshGeometry.computeBoundingSphere()
+
+			this.lineGeometry.computeBoundingSphere()
 
 			return this
 		}
@@ -153,43 +175,37 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	/**
 	 * Entities are key-value pair structures that optionally encompass one or
 	 * more Brushes. Worldspawn is the first entity in any Map.
+	 * 
+	 * If an Entity contains Brushes, it's Geometries should be ignored.
+	 * 
+	 * @constructor
 	 */
-	module.Entity = Backbone.Model.extend({
-		defaults: function() {
-			return {
-				pairs: {
-					'classname': 'undefined'
-				}
-			}
-		},
+	module.Entity = function() {
+
+		this.pairs = {
+			classname: 'undefined'
+		}
+
+		this.brushes = []
+
+		this.geometry = new THREE.Geometry()
+		this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Mesh.entity)
+		this.line = new THREE.Mesh(this.geometry, Radiant.Material.Mesh.wireframe)
+	}
+
+	$.extend(module.Entity.prototype, {
 
 		/**
-		 * Backbone initialization.
-		 */
-		initialize: function(attributes, options) {
-			this.brushes = new Backbone.Collection()
-
-			this.geometry = new THREE.Geometry()
-			this.mesh = new THREE.Mesh(this.geometry, Radiant.Material.Common.caulk)
-		},
-
-		/**
-		 * Updates the Geometry and Mesh for this Entity.
+		 * Updates the Geometry for this Entity.
 		 */
 		update: function() {
 
-			this.geometry.vertices.length = 0
-			this.geometry.faces.length = 0
-			this.geometry.faceVertexUvs[0].length = 0
-
-			for ( var i = 0; i < this.brushes.length; i++) {
-				THREE.GeometryUtils.merge(this.geometry, this.brushes.at(i).geometry)
+			if (this.brushes.length) {
+				this.geometry.vertices.length = 0
+			} else {
+				this.geometry = new THREE.CubeGeometry(24, 24, 24)
+				this.mesh.position = this.line.position = this.origin()
 			}
-
-			this.geometry.mergeVertices()
-			this.geometry.computeBoundingSphere()
-
-			this.mesh.updateMorphTargets()
 
 			return this
 		},
@@ -200,7 +216,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * @return {String|Number} The value for the specified key.
 		 */
 		getValue: function(key) {
-			return this.get('pairs')[key]
+			return this.pairs[key]
 		},
 
 		/**
@@ -210,7 +226,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * @param {String|Number} The value.
 		 */
 		setValue: function(key, value) {
-			this.get('pairs')[key] = value
+			this.pairs[key] = value
 		},
 
 		/**
@@ -249,24 +265,20 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	/**
 	 * Maps are collections of Entities. The Worldspawn entity is the first
 	 * entity, and contains the bulk of the world geometry.
+	 * 
+	 * @constructor
 	 */
-	module.Map = Backbone.Model.extend({
-		defaults: {
-			name: ''
-		},
+	module.Map = function() {
+		this.entities = []
+	}
 
-		/**
-		 * Backbone initialization.
-		 */
-		initialize: function(attributes, options) {
-			this.entities = new Backbone.Collection()
-		},
+	$.extend(module.Map.prototype, {
 
 		/**
 		 * @return {Radiant.Model.Entity} The worldspawn entity.
 		 */
 		worldspawn: function() {
-			return this.entities.at(0)
+			return this.entities[0]
 		}
 	})
 
@@ -290,9 +302,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * 
 		 * @return {Radiant.Model.Brush} The parsed Brush.
 		 */
-		parseBrush: function() {
+		parseBrush: function(entity) {
 
 			var brush = new module.Brush()
+			brush.entity = entity
 
 			var token, points = []
 			while (true) {
@@ -310,6 +323,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 					if (points.length == 3) {
 						var surface = new module.Surface()
+						surface.brush = brush
 
 						var a = points[0], b = points[1], c = points[2]
 						surface.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
@@ -328,9 +342,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * 
 		 * @return {Radiant.Model.Entity} The parsed Entity.
 		 */
-		parseEntity: function() {
+		parseEntity: function(map) {
 
 			var entity = new module.Entity()
+			entity.map = map
 
 			var token, key = null
 			while (true) {
@@ -340,10 +355,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 
 				if (token == '{') {
-					entity.brushes.add(this.parseBrush())
+					entity.brushes.push(this.parseBrush(entity))
 				} else {
 					if (key) {
-						entity.get('pairs')[key] = token
+						entity.setValue(key, token)
 						key = null
 					} else {
 						key = token
@@ -371,7 +386,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 
 				if (token == '{') {
-					map.entities.add(this.parseEntity())
+					map.entities.push(this.parseEntity(map))
 				}
 			}
 

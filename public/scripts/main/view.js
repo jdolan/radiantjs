@@ -49,7 +49,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		this.renderer = params.renderer
 		this.viewport = params.viewport
 		this.aspect = this.viewport.z / this.viewport.w
-		this.scene = params.scene
+		this.perspectiveScene = params.perspectiveScene
+		this.orthographicScene = params.orthographicScene
+		this.renderScene = null
 		this.time = 0
 
 		this.initialize(params)
@@ -89,7 +91,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			var v = this.viewport
 			this.renderer.setViewport(v.x, v.y, v.z, v.w)
 
-			this.renderer.render(this.scene, this.camera)
+			this.renderer.render(this.renderScene, this.camera)
 		},
 
 		/**
@@ -161,6 +163,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 * @param {Object} params The initialization parameters.
 		 */
 		initialize: function(params) {
+
 			this.target = params.target
 			this.offset = params.position
 
@@ -175,7 +178,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.camera.up.set(0, 0, 1)
 			this.camera.lookAt(new THREE.Vector3(0, 0, 0))
 
-			this.scene.add(this.camera)
+			this.renderScene = params.orthographicScene
+			this.renderScene.add(this.camera)
 
 			var self = this
 
@@ -266,7 +270,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.camera.add(new module.Axis())
 
 			this.boom.add(this.camera)
-			this.scene.add(this.boom)
+
+			this.renderScene = params.perspectiveScene
+			this.renderScene.add(this.boom)
 
 			this.velocity = new THREE.Vector3()
 			this.avelocity = new THREE.Vector3()
@@ -343,10 +349,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			$(this.layout.application).on(Radiant.Event.Map.Load, function(event, map) {
 
-				var center = THREE.GeometryUtils.center(map.entities.at(0).geometry)
+				self.boom.position.clear()
+				self.boom.lookAt(new THREE.Vector3(0, 1, 0))
 
-				self.boom.position.copy(center)
-				self.boom.lookAt(center.setY(center.y + 1))
 				self.camera.rotation.clear()
 			})
 		},
@@ -427,7 +432,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.renderer.autoClear = false
 			this.renderer.setSize(this.width, this.height)
 
-			this.scene = new THREE.Scene()
+			this.perspectiveScene = new THREE.Scene()
+			this.orthographicScene = new THREE.Scene()
 
 			this.initialize(params)
 
@@ -491,15 +497,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.renderer.clear()
 
 			for ( var i = 0; i < this.views.length; i++) {
-				var view = this.views[i]
-
-				if (view instanceof module.View.Orthographic) {
-					this.scene.overrideMaterial = Radiant.Material.Lines.wireframe
-				} else {
-					this.scene.overrideMaterial = undefined
-				}
-
-				view.render(time)
+				this.views[i].render(time)
 			}
 
 			this.statistics.frames++
@@ -523,7 +521,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapLoad: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				this.scene.add(map.entities.at(i).mesh)
+				var entity = map.entities[i]
+
+				if (entity.brushes.length) {
+					for ( var j = 0; j < entity.brushes.length; j++) {
+						var brush = entity.brushes[j]
+
+						this.perspectiveScene.add(brush.mesh)
+						this.orthographicScene.add(brush.line)
+					}
+				} else {
+					this.perspectiveScene.add(entity.mesh)
+					this.orthographicScene.add(entity.line)
+				}
 			}
 		},
 
@@ -533,7 +543,19 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		onMapUnload: function(event, map) {
 
 			for ( var i = 0; i < map.entities.length; i++) {
-				this.scene.remove(map.entities.at(i).mesh)
+				var entity = map.entities[i]
+
+				if (entity.brushes.length) {
+					for ( var j = 0; j < entity.brushes.length; j++) {
+						var brush = entity.brushes[j]
+
+						this.perspectiveScene.remove(brush.mesh)
+						this.orthographicScene.remove(brush.line)
+					}
+				} else {
+					this.perspectiveScene.remove(entity.mesh)
+					this.orthographicScene.remove(entity.line)
+				}
 			}
 		}
 	})
@@ -568,7 +590,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			$.extend(params, {
 				layout: this,
 				renderer: this.renderer,
-				scene: this.scene
+				perspectiveScene: this.perspectiveScene,
+				orthographicScene: this.orthographicScene
 			})
 
 			// Perspective camera

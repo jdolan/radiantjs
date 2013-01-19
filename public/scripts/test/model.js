@@ -33,7 +33,7 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 			it('Has 22 brushes', function() {
 				var brushes = 0
 				for ( var i = 0; i < map.entities.length; i++) {
-					brushes += map.entities.at(i).brushes.length
+					brushes += map.entities[i].brushes.length
 				}
 				expect(brushes).toBe(22)
 			})
@@ -41,21 +41,21 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 			it('Has 132 surfaces with 4 vertices each', function() {
 				var surfaces = 0
 				for ( var i = 0; i < map.entities.length; i++) {
-					var entity = map.entities.at(i)
+					var entity = map.entities[i]
+
 					for ( var j = 0; j < entity.brushes.length; j++) {
-						var brush = entity.brushes.at(j)
+						var brush = entity.brushes[j]
+
 						surfaces += brush.surfaces.length
+
 						for ( var k = 0; k < brush.surfaces.length; k++) {
-							var surface = brush.surfaces.at(k)
+							var surface = brush.surfaces[k]
+
 							expect(surface.vertices.length).toBe(4)
 						}
 					}
 				}
 				expect(surfaces).toBe(132)
-			})
-
-			it('Brush 0 has 6 planes', function() {
-				expect(map.worldspawn().brushes.at(0).surfaces.length).toBe(6)
 			})
 		})
 	})

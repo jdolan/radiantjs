@@ -12,13 +12,9 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	/**
 	 * The Lines materials.
 	 */
-	module.Lines = {
+	module.Line = {
 		line: new THREE.LineBasicMaterial({
 			color: 0x888888
-		}),
-		wireframe: new THREE.MeshBasicMaterial({
-			color: 0x222222,
-			wireframe: true
 		})
 	}
 
@@ -28,7 +24,12 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	module.Mesh = {
 		entity: new THREE.MeshBasicMaterial({
 			color: 0x888822,
-			opacity: 0.66
+			opacity: 0.66,
+			wireframe: true
+		}),
+		wireframe: new THREE.MeshBasicMaterial({
+			color: 0x222222,
+			wireframe: true
 		})
 	}
 
