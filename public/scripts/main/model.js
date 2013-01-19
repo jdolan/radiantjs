@@ -84,11 +84,15 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var meshGeometry = this.brush.meshGeometry
 			var lineGeometry = this.brush.lineGeometry
 
+			var index = meshGeometry.vertices.length
+
 			for ( var i = 0; i < this.vertices.length; i++) {
 				meshGeometry.vertices.push(this.vertices[i])
 
 				if (i >= 2) {
-					var face = new THREE.Face3(0, i - 1, i, this.plane.normal)
+					var a = index, b = index + i - 1, c = index + i
+					var face = new THREE.Face3(a, b, c, this.plane.normal)
+
 					face.color.setRGB(color, color, color)
 
 					meshGeometry.faces.push(face)
@@ -217,10 +221,10 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				this.mesh.material = Radiant.Material.Mesh.entity
 			}
 
-			//this.meshGeometry.mergeVertices()
-			//this.meshGeometry.computeBoundingSphere()
+			// this.meshGeometry.mergeVertices()
+			// this.meshGeometry.computeBoundingSphere()
 
-			//this.lineGeometry.computeBoundingSphere()
+			// this.lineGeometry.computeBoundingSphere()
 
 			return this
 		},
