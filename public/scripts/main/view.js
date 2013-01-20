@@ -369,6 +369,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			$(this.layout.application).on(Radiant.Event.Map.Load, function(event, map) {
 
+				// TODO move to center
 				self.boom.position.clear()
 				self.boom.lookAt(new THREE.Vector3(0, 1, 0))
 

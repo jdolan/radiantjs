@@ -13,6 +13,7 @@ require.config({
 	baseUrl: 'scripts',
 
 	paths: {
+		GoogleAnalytics: 'http://www.google-analytics.com/ga',
 		Backbone: 'main/lib/backbone-0.9.9.min',
 		jQuery: 'main/lib/jquery-1.9.0.min',
 		THREE: 'main/lib/three-r55',
@@ -57,7 +58,12 @@ if (Radiant.Test) {
 		jasmine.getEnv().execute()
 	})
 } else {
-	require([ 'Radiant.Controller' ], function() {
+
+	var _gaq = _gaq || [];
+	_gaq.push([ '_setAccount', 'UA-21071758-5' ]);
+	_gaq.push([ '_trackPageview' ]);
+
+	require([ 'Radiant.Controller', 'GoogleAnalytics' ], function() {
 		window.radiant = new Radiant.Controller.Application({})
 		window.radiant.loadMap('media/maps/torn.map')
 	})
