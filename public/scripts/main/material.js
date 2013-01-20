@@ -22,12 +22,13 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Mesh materials.
 	 */
 	module.Mesh = {
-		entity: new THREE.MeshPhongMaterial({
+		entity: new THREE.MeshBasicMaterial({
 			color: 0x888822,
 			opacity: 0.66,
 			wireframe: true
 		}),
-		wireframe: new THREE.MeshPhongMaterial({
+		wireframe: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
 			color: 0x222222,
 			wireframe: true
 		})
@@ -48,6 +49,40 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Common materials.
 	 */
 	module.Common = {
+		/*
+		caulk: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/caulk.png')
+		}),
+		clip: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/clip.png')
+		}),
+		hint: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/hint.png')
+		}),
+		ladder: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/ladder.png')
+		}),
+		missing: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/missing.png')
+		}),
+		origin: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/origin.png')
+		}),
+		sky: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/sky.png')
+		}),
+		trigger: new THREE.MeshBasicMaterial({
+			vertexColors: THREE.FaceColors,
+			map: module.load('common/trigger.png')
+		})
+		*/
 		caulk: new THREE.MeshPhongMaterial({
 			map: module.load('common/caulk.png')
 		}),

@@ -83,14 +83,17 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var lineGeometry = this.brush.lineGeometry
 
 			var index = meshGeometry.vertices.length
+			var vn = new THREE.Vector3().copy(this.plane.normal).negate()
+			var col = new THREE.Color()
+			col.r = col.g = col.b =
+				0.25 + 0.75 * Math.abs(vn.dot(new THREE.Vector3(6/7, 3/7, 2/7)))
 
 			for ( var i = 0; i < this.vertices.length; i++) {
 				meshGeometry.vertices.push(this.vertices[i])
 
 				if (i >= 2) {
 					var a = index, b = index + i - 1, c = index + i
-					var vn = new THREE.Vector3().copy(this.plane.normal).negate()
-					var face = new THREE.Face3(a, b, c, vn)
+					var face = new THREE.Face3(a, b, c, vn, col)
 
 					meshGeometry.faces.push(face)
 
