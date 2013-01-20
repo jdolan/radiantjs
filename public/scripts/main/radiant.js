@@ -1,5 +1,9 @@
 'use strict';
 
+var _gaq = _gaq || [];
+_gaq.push([ '_setAccount', 'UA-21071758-5' ]);
+_gaq.push([ '_trackPageview' ]);
+
 /**
  * This is a JavaScript implementation of the Radiant level editing software for
  * idTech games. It requires WebGL and a decent JavaScript engine.<br/>
@@ -58,11 +62,6 @@ if (Radiant.Test) {
 		jasmine.getEnv().execute()
 	})
 } else {
-
-	var _gaq = _gaq || [];
-	_gaq.push([ '_setAccount', 'UA-21071758-5' ]);
-	_gaq.push([ '_trackPageview' ]);
-
 	require([ 'Radiant.Controller', 'GoogleAnalytics' ], function() {
 		window.radiant = new Radiant.Controller.Application({})
 		window.radiant.loadMap('media/maps/torn.map')
