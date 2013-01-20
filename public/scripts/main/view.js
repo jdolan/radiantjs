@@ -291,6 +291,20 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.renderScene = params.perspectiveScene
 			this.renderScene.add(this.boom)
 
+			// an ambient light
+			this.ambientLight = new THREE.AmbientLight(0x808080)
+			this.renderScene.add(this.ambientLight)
+
+			// a point light at camera origin (DP r_fakelight)
+			this.pointLight = new THREE.PointLight(0xc0c0c0)
+			this.camera.add(this.pointLight)
+
+			/*
+			// a directional light in camera view direction (GtkRadiant)
+			this.directionalLight = new THREE.DirectionalLight(0x808080)
+			this.renderScene.add(this.directionalLight)
+			*/
+
 			this.axis = new module.Axis(this.camera)
 			this.orthographicScene.add(this.axis)
 
@@ -415,6 +429,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			this.axis.update()
+
+			if (this.directionalLight)
+				this.directionalLight.position =
+					new THREE.Vector3(0, 0, 1).
+					applyEuler(this.camera.rotation).
+					applyEuler(this.boom.rotation)
 		},
 
 		/**

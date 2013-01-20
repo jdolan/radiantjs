@@ -22,12 +22,12 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Mesh materials.
 	 */
 	module.Mesh = {
-		entity: new THREE.MeshBasicMaterial({
+		entity: new THREE.MeshPhongMaterial({
 			color: 0x888822,
 			opacity: 0.66,
 			wireframe: true
 		}),
-		wireframe: new THREE.MeshBasicMaterial({
+		wireframe: new THREE.MeshPhongMaterial({
 			color: 0x222222,
 			wireframe: true
 		})
@@ -48,37 +48,29 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Common materials.
 	 */
 	module.Common = {
-		caulk: new THREE.MeshBasicMaterial({
-			map: module.load('common/caulk.png'),
-			vertexColors: THREE.FaceColors
+		caulk: new THREE.MeshPhongMaterial({
+			map: module.load('common/caulk.png')
 		}),
-		clip: new THREE.MeshBasicMaterial({
-			map: module.load('common/clip.png'),
-			vertexColors: THREE.FaceColors
+		clip: new THREE.MeshPhongMaterial({
+			map: module.load('common/clip.png')
 		}),
-		hint: new THREE.MeshBasicMaterial({
-			map: module.load('common/hint.png'),
-			vertexColors: THREE.FaceColors
+		hint: new THREE.MeshPhongMaterial({
+			map: module.load('common/hint.png')
 		}),
-		ladder: new THREE.MeshBasicMaterial({
-			map: module.load('common/ladder.png'),
-			vertexColors: THREE.FaceColors
+		ladder: new THREE.MeshPhongMaterial({
+			map: module.load('common/ladder.png')
 		}),
-		missing: new THREE.MeshBasicMaterial({
-			map: module.load('common/missing.png'),
-			vertexColors: THREE.FaceColors
+		missing: new THREE.MeshPhongMaterial({
+			map: module.load('common/missing.png')
 		}),
-		origin: new THREE.MeshBasicMaterial({
-			map: module.load('common/origin.png'),
-			vertexColors: THREE.FaceColors
+		origin: new THREE.MeshPhongMaterial({
+			map: module.load('common/origin.png')
 		}),
-		sky: new THREE.MeshBasicMaterial({
-			map: module.load('common/sky.png'),
-			vertexColors: THREE.FaceColors
+		sky: new THREE.MeshPhongMaterial({
+			map: module.load('common/sky.png')
 		}),
-		trigger: new THREE.MeshBasicMaterial({
-			map: module.load('common/trigger.png'),
-			vertexColors: THREE.FaceColors
+		trigger: new THREE.MeshPhongMaterial({
+			map: module.load('common/trigger.png')
 		})
 	}
 
