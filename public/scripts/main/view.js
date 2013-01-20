@@ -291,6 +291,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.renderScene = params.perspectiveScene
 			this.renderScene.add(this.boom)
 
+			/*
 			// an ambient light
 			this.ambientLight = new THREE.AmbientLight(0x808080)
 			this.renderScene.add(this.ambientLight)
@@ -298,6 +299,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			// a point light at camera origin (DP r_fakelight)
 			this.pointLight = new THREE.PointLight(0xc0c0c0)
 			this.camera.add(this.pointLight)
+			*/
 
 			/*
 			// a directional light in camera view direction (GtkRadiant)

@@ -49,7 +49,6 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * The Common materials.
 	 */
 	module.Common = {
-		/*
 		caulk: new THREE.MeshBasicMaterial({
 			vertexColors: THREE.FaceColors,
 			map: module.load('common/caulk.png')
@@ -82,7 +81,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 			vertexColors: THREE.FaceColors,
 			map: module.load('common/trigger.png')
 		})
-		*/
+		/*
 		caulk: new THREE.MeshPhongMaterial({
 			map: module.load('common/caulk.png')
 		}),
@@ -107,6 +106,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 		trigger: new THREE.MeshPhongMaterial({
 			map: module.load('common/trigger.png')
 		})
+		*/
 	}
 
 	window.Radiant.Material = module
