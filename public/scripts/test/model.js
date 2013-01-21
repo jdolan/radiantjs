@@ -59,11 +59,11 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 			})
 
 			it('Can be updated efficiently', function() {
-				
+
 				var start = new Date().getTime()
 				map.worldspawn().update()
 				var end = new Date().getTime()
-				
+
 				expect(end - start).toBeLessThan(50)
 				console.log('Construct worldspawn update', end - start)
 			})
@@ -94,12 +94,36 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 				expect(map.worldspawn().brushes.length).toBe(2031)
 			})
 
+			it('Has rotated light emitters', function() {
+
+				var s = map.worldspawn().brushes[412].surfaces[5]
+
+				expect(s.texture).toBe('torn/metpan_lite1')
+				expect(s.offsetS).toBe(0)
+				expect(s.offsetT).toBe(64)
+				expect(s.angle).toBe(90)
+				expect(s.scaleS).toBe(0.5)
+				expect(s.scaleT).toBe(0.5)
+				expect(s.contents).toBe(1)
+				expect(s.flags).toBe(1)
+				expect(s.value).toBe(150)
+			})
+
+			it('Has plausible base texture vectors', function() {
+
+				var s = map.worldspawn().brushes[1].surfaces[3]
+				var tv = s.plane.textureVectors()
+
+				expect(tv[0]).toEqual(new THREE.Vector3(1, 0, 1))
+				expect(tv[1]).toEqual(new THREE.Vector3(0, -1, 1))
+			})
+
 			it('Can be updated efficiently', function() {
 
 				var start = new Date().getTime()
 				map.worldspawn().update()
 				var end = new Date().getTime()
-				
+
 				expect(end - start).toBeLessThan(100)
 				console.log('Torn worldspawn update', end - start)
 			})

@@ -66,16 +66,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 		this.angle = 0
 
-		this.scaleS = 0
-		this.scaleT = 0
+		this.scaleS = 1
+		this.scaleT = 1
 
 		this.contents = 0
 
 		this.flags = 0
 		this.value = 0
 	}
-
-	module.Surface._textureMatrix = new THREE.Matrix4()
 
 	$.extend(module.Surface.prototype, {
 
@@ -89,8 +87,17 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var index = meshGeometry.vertices.length
 			var normal = this.plane.normal.clone().negate()
 
+			var textureVectors = this.textureVectors()
+			var textureCoordinates = []
+
 			for ( var i = 0; i < this.vertices.length; i++) {
+
 				meshGeometry.vertices.push(this.vertices[i])
+
+				var s = this.offsetS + this.vertices[i].dot(textureVectors[0]) / 64
+				var t = this.offsetT + this.vertices[i].dot(textureVectors[1]) / 64
+
+				textureCoordinates.push(new THREE.Vector2(s, t))
 
 				if (i >= 2) {
 					var a = index, b = index + i - 1, c = index + i
@@ -98,9 +105,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 					meshGeometry.faces.push(face)
 
-					var st0 = new THREE.Vector2(0, 1)
-					var st1 = new THREE.Vector2(0, 1)
-					var st2 = new THREE.Vector2(0, 1)
+					var st0 = textureCoordinates[0]
+					var st1 = textureCoordinates[i - 1]
+					var st2 = textureCoordinates[i]
 
 					meshGeometry.faceVertexUvs[0].push([ st0, st1, st2 ])
 				}
@@ -111,10 +118,50 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		},
 
 		/**
-		 * @return {THREE.Matrix4} The UV coordinate Matrix for this surface.
+		 * Returns the S and T vectors for the Surface. Ported directly from
+		 * q3map2's map.c.
+		 * 
+		 * @return {Array} The S and T Vectors (Vector3).
 		 */
-		textureMatrix: function() {
+		textureVectors: function() {
 
+			var sv, tv, vectors = this.plane.textureVectors()
+			if (vectors[0].x) {
+				sv = 0
+			} else if (vectors[0].y) {
+				sv = 1
+			} else {
+				sv = 2
+			}
+
+			if (vectors[1].x) {
+				tv = 0
+			} else if (vectors[1].y) {
+				tv = 1
+			} else {
+				tv = 2
+			}
+
+			var theta = THREE.Math.degToRad(this.angle)
+
+			var sin = Math.sin(theta)
+			var cos = Math.cos(theta)
+
+			for ( var i = 0; i < 2; i++) {
+				var s = vectors[i].getComponent(sv)
+				var t = vectors[i].getComponent(tv)
+				
+				var newS = cos * s - sin * t
+				var newT = sin * s + cos * t
+
+				vectors[i].setComponent(sv, newS)
+				vectors[i].setComponent(tv, newT)
+			}
+
+			vectors[0].divideScalar(this.scaleS)
+			vectors[1].divideScalar(this.scaleT)
+
+			return vectors
 		}
 	})
 

@@ -18,7 +18,36 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		/**
 		 * Constant for Plane intersections (clipping).
 		 */
-		Epsilon: 0.001
+		Epsilon: 0.001,
+
+		/**
+		 * Base vectors used to calculate texture coordinates for vertices.
+		 */
+		TextureVectors: [ {
+			n: new THREE.Vector3(0, 0, 1),
+			s: new THREE.Vector3(1, 0, 1),
+			t: new THREE.Vector3(0, -1, 1)
+		}, {
+			n: new THREE.Vector3(0, 0, -1),
+			s: new THREE.Vector3(1, 0, 1),
+			t: new THREE.Vector3(0, -1, 1)
+		}, {
+			n: new THREE.Vector3(1, 0, 0),
+			s: new THREE.Vector3(0, 1, 0),
+			t: new THREE.Vector3(0, 0, -1)
+		}, {
+			n: new THREE.Vector3(-1, 0, 0),
+			s: new THREE.Vector3(0, 1, 0),
+			t: new THREE.Vector3(0, 0, -1)
+		}, {
+			n: new THREE.Vector3(0, 1, 0),
+			s: new THREE.Vector3(1, 0, 0),
+			t: new THREE.Vector3(0, 0, -1)
+		}, {
+			n: new THREE.Vector3(0, -1, 0),
+			s: new THREE.Vector3(1, 0, 0),
+			t: new THREE.Vector3(0, 0, -1)
+		} ]
 	}
 
 	$.extend(THREE.Vector2.prototype, {
@@ -171,6 +200,27 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 			}
 
 			return vertices
+		},
+
+		/**
+		 * @return {Array} The S and T Vectors for this Plane.
+		 */
+		textureVectors: function(epsilon) {
+
+			var vectors = null, dot = 0, e = epsilon || module.Epsilon
+
+			for ( var i = 0; i < module.TextureVectors.length; i++) {
+
+				var vecs = module.TextureVectors[i]
+				var d = this.normal.dot(vecs.n)
+
+				if (d > dot + e) {
+					vectors = vecs
+					dot = d
+				}
+			}
+
+			return [ vectors.s.clone(), vectors.t.clone() ]
 		},
 
 		/**
