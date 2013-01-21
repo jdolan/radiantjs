@@ -83,14 +83,14 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var lineGeometry = this.brush.lineGeometry
 
 			var index = meshGeometry.vertices.length
+			var normal = this.plane.normal.clone().negate()
 
 			for ( var i = 0; i < this.vertices.length; i++) {
 				meshGeometry.vertices.push(this.vertices[i])
 
 				if (i >= 2) {
 					var a = index, b = index + i - 1, c = index + i
-					var vn = new THREE.Vector3().copy(this.plane.normal).negate()
-					var face = new THREE.Face3(a, b, c, vn)
+					var face = new THREE.Face3(a, b, c, normal)
 
 					meshGeometry.faces.push(face)
 
@@ -181,11 +181,9 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 
 		this.meshGeometry = new THREE.Geometry()
 		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Mesh.entity)
-		this.mesh.frustumCulled = false
 
 		this.lineGeometry = new THREE.Geometry()
 		this.line = new THREE.Line(this.lineGeometry, Radiant.Material.Line.line, THREE.LinePieces)
-		this.mesh.frustumCulled = false
 	}
 
 	$.extend(module.Entity.prototype, {
@@ -211,17 +209,28 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				}
 
 				this.mesh.material = Radiant.Material.Common.caulk
+
+				if (this.classname() === 'worldspawn') {
+					this.mesh.frustumCulled = this.line.frustumCulled = false
+				} else {
+					this.mesh.frustumCulled = this.line.frustumCulled = true
+				}
 			} else {
 				this.meshGeometry = this.lineGeometry = new THREE.CubeGeometry(24, 24, 24)
 				this.mesh.position = this.line.position = this.origin()
 
 				this.mesh.material = Radiant.Material.Mesh.entity
+
+				this.mesh.frustumCulled = this.line.frustumCulled = true
 			}
 
-			// this.meshGeometry.mergeVertices()
-			// this.meshGeometry.computeBoundingSphere()
+			if (this.mesh.frustumCulled) {
+				this.meshGeometry.computeBoundingSphere()
+			}
 
-			// this.lineGeometry.computeBoundingSphere()
+			if (this.line.frustumCulled) {
+				this.lineGeometry.computeBoundingSphere()
+			}
 
 			return this
 		},
@@ -258,7 +267,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		 * @return {THREE.Vector3} The origin, or null.
 		 */
 		origin: function() {
-			if (this.brushes.length == 0) {
+			if (this.brushes.length === 0) {
 				return Radiant.Util.parseVector3(this.getValue('origin'))
 			}
 			return null
@@ -328,18 +337,18 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var token, points = []
 			while (true) {
 				token = this.nextToken()
-				if (!token || token == '}') {
+				if (!token || token === '}') {
 					break
 				}
 
-				if (token == '(') {
+				if (token === '(') {
 					var x = parseFloat(this.nextToken())
 					var y = parseFloat(this.nextToken())
 					var z = parseFloat(this.nextToken())
 
 					points.push(new THREE.Vector3(x, y, z))
 
-					if (points.length == 3) {
+					if (points.length === 3) {
 						var surface = new module.Surface()
 						surface.brush = brush
 
@@ -370,11 +379,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var token, key = null
 			while (true) {
 				token = this.nextToken()
-				if (!token || token == '}') {
+				if (!token || token === '}') {
 					break
 				}
 
-				if (token == '{') {
+				if (token === '{') {
 					entity.brushes.push(this.parseBrush(entity))
 				} else {
 					if (key) {
@@ -401,11 +410,11 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			var token
 			while (true) {
 				token = this.nextToken()
-				if (!token || token == '}') {
+				if (!token || token === '}') {
 					break
 				}
 
-				if (token == '{') {
+				if (token === '{') {
 					map.entities.push(this.parseEntity(map))
 				}
 			}
@@ -432,7 +441,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 					handler(new Parser(e.target.result).parse())
 				}
 				reader.readAsText(resource)
-			} else if ($.type(resource) == 'string') {
+			} else if ($.type(resource) === 'string') {
 				$.get(resource, function(data) {
 					handler(new Parser(data).parse())
 				})

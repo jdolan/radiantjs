@@ -41,7 +41,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 						token = ''
 					}
 				} else {
-					if ('"' == c) {
+					if ('"' === c) {
 						if (quote) {
 							return token
 						} else {
@@ -53,7 +53,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 						}
 					} else {
 						token += c
-						if (token == '//') {
+						if (token === '//') {
 							comment = true
 						}
 					}

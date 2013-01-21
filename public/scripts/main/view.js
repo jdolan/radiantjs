@@ -149,7 +149,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				})
 			} else if (/key.*/.test(event)) {
 				$(document).on(event, function(e) {
-					if (e.target.nodeName == 'BODY') {
+					if (e.target.nodeName === 'BODY') {
 						return handler(e)
 					}
 				})
@@ -206,9 +206,9 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				var k = String.fromCharCode(e.which)
 				var prefs = self.layout.application.preferences
 
-				if (k == prefs.get('KeyZoomIn')) {
+				if (k === prefs.get('KeyZoomIn')) {
 					self.fov = self.fov << 1
-				} else if (k == prefs.get('KeyZoomOut')) {
+				} else if (k === prefs.get('KeyZoomOut')) {
 					self.fov = self.fov >> 1
 				}
 			})
@@ -228,7 +228,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			this.fov = THREE.Math.clamp(this.fov, 128, 8192)
-			if (this.fov != this.lastFov) {
+			if (this.fov !== this.lastFov) {
 				this.setViewport(this.viewport)
 				this.lastFov = this.fov
 			}
@@ -321,33 +321,33 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 				var prefs = self.layout.application.preferences
 
 				if (self.freelook) {
-					if (k == prefs.get('KeyForward')) {
+					if (k === prefs.get('KeyForward')) {
 						self.velocity.z--
 						self.velocity.y += self.camera.rotation.x
-					} else if (k == prefs.get('KeyBack')) {
+					} else if (k === prefs.get('KeyBack')) {
 						self.velocity.z++
 						self.velocity.y -= self.camera.rotation.x
-					} else if (k == prefs.get('KeyMoveLeft')) {
+					} else if (k === prefs.get('KeyMoveLeft')) {
 						self.velocity.x--
-					} else if (k == prefs.get('KeyMoveRight')) {
+					} else if (k === prefs.get('KeyMoveRight')) {
 						self.velocity.x++
 					}
 				} else {
-					if (k == prefs.get('KeyForward')) {
+					if (k === prefs.get('KeyForward')) {
 						self.velocity.z--
-					} else if (k == prefs.get('KeyBack')) {
+					} else if (k === prefs.get('KeyBack')) {
 						self.velocity.z++
-					} else if (k == prefs.get('KeyMoveUp')) {
+					} else if (k === prefs.get('KeyMoveUp')) {
 						self.velocity.y++
-					} else if (k == prefs.get('KeyMoveDown')) {
+					} else if (k === prefs.get('KeyMoveDown')) {
 						self.velocity.y--
-					} else if (k == prefs.get('KeyLookUp')) {
+					} else if (k === prefs.get('KeyLookUp')) {
 						self.avelocity.x++
-					} else if (k == prefs.get('KeyLookDown')) {
+					} else if (k === prefs.get('KeyLookDown')) {
 						self.avelocity.x--
-					} else if (k == prefs.get('KeyLookLeft')) {
+					} else if (k === prefs.get('KeyLookLeft')) {
 						self.avelocity.y--
-					} else if (k == prefs.get('KeyLookRight')) {
+					} else if (k === prefs.get('KeyLookRight')) {
 						self.avelocity.y++
 					}
 				}
@@ -369,14 +369,14 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			})
 
 			this.on('mousedown', function(e) {
-				if (e.which == 3) {
+				if (e.which === 3) {
 					self.freelook = !self.freelook
 					if (self.freelook) {
 						self.lastMousemove.set(e.screenX, e.screenY)
 					}
-				} else if (e.which == 1 && e.shiftKey) {
+				} else if (e.which === 1 && e.shiftKey) {
 					console.debug('select brush')
-				} else if (e.which == 1 && e.ctrlKey) {
+				} else if (e.which === 1 && e.ctrlKey) {
 					console.debug('select face')
 				}
 			})
@@ -512,7 +512,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			var self = this
 			$(window).resize(function(e) {
 				var width = $(window).width(), height = $(window).height()
-				if (width != self.width || height != self.height) {
+				if (width !== self.width || height !== self.height) {
 
 					self.renderer.setSize(width, height)
 					self.onResize(width, height)
