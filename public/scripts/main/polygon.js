@@ -58,7 +58,7 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 	})
 
 	$.extend(THREE.Plane.prototype, {
-		
+
 		/**
 		 * @return The up-vector for this Plane.
 		 */

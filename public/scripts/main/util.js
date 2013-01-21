@@ -22,7 +22,7 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 	}
 
 	$.extend(module.Parser.prototype, {
-
+		
 		/**
 		 * Parses the next token in the buffer. This is reminiscent of
 		 * <code>Com_Parse</code> in Quake's shared.c.
@@ -68,6 +68,20 @@ define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
 		 */
 		reset: function() {
 			this.index = 0
+		},
+		
+		/**
+		 * Unparses the specified token. It will be returned by the next call
+		 * to <code>nextToken</code>.
+		 * 
+		 * @param {String} token The token to unparse.
+		 */
+		unparse: function(token) {
+			if (token.length + 1 > this.index) {
+				this.reset()
+			} else {
+				this.index -= (token.length + 1)
+			}
 		}
 	})
 

@@ -64,14 +64,18 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		this.offsetS = 0
 		this.offsetT = 0
 
+		this.angle = 0
+
 		this.scaleS = 0
 		this.scaleT = 0
 
+		this.contents = 0
+
 		this.flags = 0
 		this.value = 0
-
-		this.textureMatrix = new THREE.Matrix4()
 	}
+
+	module.Surface._textureMatrix = new THREE.Matrix4()
 
 	$.extend(module.Surface.prototype, {
 
@@ -104,6 +108,13 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 				lineGeometry.vertices.push(this.vertices[i])
 				lineGeometry.vertices.push(this.vertices[(i + 1) % this.vertices.length])
 			}
+		},
+
+		/**
+		 * @return {THREE.Matrix4} The UV coordinate Matrix for this surface.
+		 */
+		textureMatrix: function() {
+
 		}
 	})
 
@@ -355,8 +366,44 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 						var a = points[0], b = points[1], c = points[2]
 						surface.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
 
-						brush.surfaces.push(surface)
 						points.length = 0
+
+						this.nextToken() // )
+
+						surface.texture = this.nextToken()
+
+						surface.offsetS = parseFloat(this.nextToken())
+						surface.offsetT = parseFloat(this.nextToken())
+
+						surface.angle = parseFloat(this.nextToken())
+
+						surface.scaleS = parseFloat(this.nextToken())
+						surface.scaleT = parseFloat(this.nextToken())
+
+						// the remaining fields are optional
+
+						token = this.nextToken()
+						if (token !== '(' && token !== '}') {
+							surface.contents = parseInt(token)
+
+							token = this.nextToken()
+							if (token !== '(' && token !== '}') {
+								surface.flags = parseInt(token)
+
+								token = this.nextToken()
+								if (token !== '(' && token !== '}') {
+									surface.value = parseFloat(token)
+								} else {
+									this.unparse(token)
+								}
+							} else {
+								this.unparse(token)
+							}
+						} else {
+							this.unparse(token)
+						}
+
+						brush.surfaces.push(surface)
 					}
 				}
 			}
