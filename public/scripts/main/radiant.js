@@ -13,8 +13,8 @@ require.config({
 	baseUrl: 'scripts',
 
 	paths: {
-		GoogleAnalytics: 'http://www.google-analytics.com/ga',
 		Backbone: 'main/lib/backbone-0.9.9.min',
+		GoogleAnalytics: 'main/lib/ga.min',
 		jQuery: 'main/lib/jquery-1.9.0.min',
 		THREE: 'main/lib/three-r55',
 		Underscore: 'main/lib/underscore-1.4.3.min',
@@ -62,6 +62,12 @@ if (Radiant.Test) {
 		window.radiant = new Radiant.Controller.Application({})
 		window.radiant.loadMap('media/maps/torn.map')
 
-		_gat._getTracker('UA-21071758-5')._trackPageview()
+		try {
+			if (window.location.hostname !== 'localhost') {
+				_gat._getTracker('UA-21071758-5')._trackPageview()
+			}
+		} catch (e) {
+			console.debug('Google Analytics tracking failed', e)
+		}
 	})
 }
