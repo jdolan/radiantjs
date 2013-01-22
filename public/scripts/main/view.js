@@ -1,12 +1,13 @@
 'use strict';
 
 /**
- * The Layout module is responsible for rendering all 2D and 3D views. A single
- * WebGL canvas with multiple cameras and viewports is used.
+ * The View module provides Orthographic and Perspective projections into the
+ * Scenes maintained by the Layout. Views also handle input events for
+ * navigating the map, selecting and creating objects.
  * 
  * @author jdolan
  */
-define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
+define('Radiant.View', [ 'Radiant.Ui' ], function() {
 
 	var module = {}
 
@@ -64,6 +65,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 	 */
 	module.View = function(params) {
 
+		this.application = params.application
+		this.preferences = params.preferences
 		this.layout = params.layout
 		this.renderer = params.renderer
 		this.viewport = params.viewport
@@ -169,12 +172,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 	 * 
 	 * @param {Object} params The initialization parameters.
 	 */
-	module.View.Orthographic = function(params) {
+	module.Orthographic = function(params) {
 		module.View.call(this, params)
 	}
 
-	$.extend(module.View.Orthographic.prototype, module.View.prototype, {
-		constructor: module.View.Orthographic,
+	$.extend(module.Orthographic.prototype, module.View.prototype, {
+		constructor: module.Orthographic,
 
 		/**
 		 * Initializes this Orthographic View.
@@ -183,7 +186,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		initialize: function(params) {
 
-			this.target = params.target
+			this.perspectiveView = params.perspectiveView
 			this.offset = params.position
 
 			this.fov = params.orthographicFov || 1024
@@ -204,11 +207,10 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.on('keypress', function(e) {
 				var k = String.fromCharCode(e.which)
-				var prefs = self.layout.application.preferences
 
-				if (k === prefs.get('KeyZoomIn')) {
+				if (k === self.preferences.keyZoomIn.value) {
 					self.fov = self.fov << 1
-				} else if (k === prefs.get('KeyZoomOut')) {
+				} else if (k === self.preferences.keyZoomOut.value) {
 					self.fov = self.fov >> 1
 				}
 			})
@@ -221,9 +223,10 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 		 */
 		update: function(time) {
 
-			if (this.target) {
-				if (this.layout.application.preferences.get('FollowPerspective')) {
-					this.camera.position.addVectors(this.target.position, this.offset)
+			if (this.perspectiveView) {
+				if (this.preferences.followPerspectiveView.value) {
+					var position = this.perspectiveView.boom.position
+					this.camera.position.addVectors(position, this.offset)
 				}
 			}
 
@@ -262,12 +265,12 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 	 * 
 	 * @param {Object} params The initialization parameters.
 	 */
-	module.View.Perspective = function(params) {
+	module.Perspective = function(params) {
 		module.View.call(this, params)
 	}
 
-	$.extend(module.View.Perspective.prototype, module.View.prototype, {
-		constructor: module.View.Perspective,
+	$.extend(module.Perspective.prototype, module.View.prototype, {
+		constructor: module.Perspective,
 
 		/**
 		 * Initializes this Perspective View.
@@ -300,10 +303,10 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.camera.add(this.pointLight)
 
 			/*
-			// a directional light in camera view direction (GtkRadiant)
-			this.directionalLight = new THREE.DirectionalLight(0x808080)
-			this.renderScene.add(this.directionalLight)
-			*/
+			 * // a directional light in camera view direction (GtkRadiant)
+			 * this.directionalLight = new THREE.DirectionalLight(0x808080)
+			 * this.renderScene.add(this.directionalLight)
+			 */
 
 			this.axis = new module.Axis(this.camera)
 			this.orthographicScene.add(this.axis)
@@ -318,36 +321,35 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.on('keypress', function(e) {
 				var k = String.fromCharCode(e.which)
-				var prefs = self.layout.application.preferences
 
 				if (self.freelook) {
-					if (k === prefs.get('KeyForward')) {
+					if (k === this.prefrences.keyForward) {
 						self.velocity.z--
 						self.velocity.y += self.camera.rotation.x
-					} else if (k === prefs.get('KeyBack')) {
+					} else if (k === self.preferences.keyBack.value) {
 						self.velocity.z++
 						self.velocity.y -= self.camera.rotation.x
-					} else if (k === prefs.get('KeyMoveLeft')) {
+					} else if (k === self.preferences.keyMoveLeft.value) {
 						self.velocity.x--
-					} else if (k === prefs.get('KeyMoveRight')) {
+					} else if (k === self.preferences.keyMoveRight.value) {
 						self.velocity.x++
 					}
 				} else {
-					if (k === prefs.get('KeyForward')) {
+					if (k === self.preferences.keyForward.value) {
 						self.velocity.z--
-					} else if (k === prefs.get('KeyBack')) {
+					} else if (k === self.preferences.keyBack.value) {
 						self.velocity.z++
-					} else if (k === prefs.get('KeyMoveUp')) {
+					} else if (k === self.preferences.keyMoveUp.value) {
 						self.velocity.y++
-					} else if (k === prefs.get('KeyMoveDown')) {
+					} else if (k === self.preferences.keyMoveDown.value) {
 						self.velocity.y--
-					} else if (k === prefs.get('KeyLookUp')) {
+					} else if (k === self.preferences.keyLookUp.value) {
 						self.avelocity.x++
-					} else if (k === prefs.get('KeyLookDown')) {
+					} else if (k === self.preferences.keyLookDown.value) {
 						self.avelocity.x--
-					} else if (k === prefs.get('KeyLookLeft')) {
+					} else if (k === self.preferences.keyLookLeft.value) {
 						self.avelocity.y--
-					} else if (k === prefs.get('KeyLookRight')) {
+					} else if (k === self.preferences.keyLookRight.value) {
 						self.avelocity.y++
 					}
 				}
@@ -355,8 +357,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.on('mousemove', function(e) {
 				if (self.freelook) {
-					var s = self.layout.application.preferences.get('FreelookSensitivity')
-					var i = self.layout.application.preferences.get('FreelookInvert')
+					var s = self.preferences.freelookSensitivity.value
+					var i = self.preferences.freelookInvert.value
 
 					var yaw = (e.screenX - self.lastMousemove.x) * s
 					self.avelocity.y += yaw
@@ -405,7 +407,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			if (this.velocity.x || this.velocity.y || this.velocity.z) {
-				var s = this.layout.application.preferences.get('CameraMovementSpeed')
+				var s = this.preferences.cameraMovementSpeed.value
 				this.boom.translate(s, this.velocity.clone())
 
 				this.boom.position.clamp(-16384, 16384)
@@ -418,7 +420,7 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			}
 
 			if (this.avelocity.x || this.avelocity.y) {
-				var s = this.layout.application.preferences.get('CameraRotationSpeed')
+				var s = this.preferences.cameraRotationSpeed.value
 				var rotation = this.avelocity.clone().multiplyScalar(s * Math.PI / 180)
 
 				this.boom.rotation.y += rotation.y
@@ -431,10 +433,8 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 			this.axis.update()
 
 			if (this.directionalLight)
-				this.directionalLight.position =
-					new THREE.Vector3(0, 0, 1).
-					applyEuler(this.camera.rotation).
-					applyEuler(this.boom.rotation)
+				this.directionalLight.position = new THREE.Vector3(0, 0, 1).applyEuler(
+						this.camera.rotation).applyEuler(this.boom.rotation)
 		},
 
 		/**
@@ -447,221 +447,6 @@ define('Radiant.View', [ 'Radiant.Material', 'Radiant.Ui' ], function() {
 
 			this.camera.aspect = this.aspect
 			this.camera.updateProjectionMatrix()
-		}
-	})
-
-	/**
-	 * The base Layout class.
-	 * 
-	 * @private
-	 * @constructor
-	 * 
-	 * @param {Object} params The initialization parameters.
-	 */
-	var Layout = function(params) {
-
-		this.application = params.application
-
-		this.width = $(window).width()
-		this.height = $(window).height()
-
-		this.views = new Array()
-
-		params.canvas = params.canvas || $('#layout > canvas')[0]
-
-		this.renderer = new THREE.WebGLRenderer(params)
-		if (this.renderer.getContext()) {
-
-			this.renderer.autoClear = false
-			this.renderer.setSize(this.width, this.height)
-
-			this.perspectiveScene = new THREE.Scene()
-			this.orthographicScene = new THREE.Scene()
-
-			this.initialize(params)
-
-			this.statistics = new Radiant.Ui.Statistics(params)
-
-			this.bindEvents()
-		} else {
-			console.error('Failed to initialize WebGL context')
-		}
-	}
-
-	$.extend(Layout.prototype, {
-		constructor: Layout,
-
-		/**
-		 * Initializes this Layout. To be overridden.
-		 * 
-		 * @param {Object} params The initialization parameters.
-		 */
-		initialize: function(params) {
-			// to be overridden
-		},
-
-		/**
-		 * Binds to window events, Radiant.Event and enters the rendering loop.
-		 */
-		bindEvents: function() {
-
-			$(window).on('contextmenu', function(e) {
-				e.preventDefault()
-			})
-
-			var self = this
-			$(window).resize(function(e) {
-				var width = $(window).width(), height = $(window).height()
-				if (width !== self.width || height !== self.height) {
-
-					self.renderer.setSize(width, height)
-					self.onResize(width, height)
-
-					self.width = width
-					self.height = height
-				}
-			})
-
-			var app = $(this.application)
-
-			app.on(Radiant.Event.Map.Load, this.onMapLoad.bind(this))
-			app.on(Radiant.Event.Map.Unload, this.onMapUnload.bind(this))
-
-			requestAnimationFrame(this.render.bind(this));
-		},
-
-		/**
-		 * Renders all Views in this Layout.
-		 * 
-		 * @param {Number} time The current time in milliseconds.
-		 */
-		render: function(time) {
-
-			this.renderer.clear()
-
-			for ( var i = 0; i < this.views.length; i++) {
-				this.views[i].render(time)
-			}
-
-			this.statistics.frames++
-
-			requestAnimationFrame(this.render.bind(this))
-		},
-
-		/**
-		 * Resizes the layout on window resize events. To be overridden.
-		 * 
-		 * @param {Number} width The Layout width.
-		 * @param {Number} height The Layout height.
-		 */
-		onResize: function(width, height) {
-			// to be overridden
-		},
-
-		/**
-		 * Radiant.Event.Map.Load listener.
-		 */
-		onMapLoad: function(event, map) {
-
-			for ( var i = 0; i < map.entities.length; i++) {
-				var entity = map.entities[i]
-
-				this.perspectiveScene.add(entity.mesh)
-				this.orthographicScene.add(entity.line)
-			}
-		},
-
-		/**
-		 * Radiant.Event.Map.Unload listener.
-		 */
-		onMapUnload: function(event, map) {
-
-			for ( var i = 0; i < map.entities.length; i++) {
-				var entity = map.entities[i]
-
-				this.perspectiveScene.remove(entity.mesh)
-				this.orthographicScene.remove(entity.line)
-			}
-		}
-	})
-
-	/**
-	 * The classic (4-quadrant) GtkRadiant layout.
-	 * 
-	 * @constructor
-	 * @augments Layout
-	 * 
-	 * @param {Object} params The initialization parameters.
-	 */
-	module.Classic = function(params) {
-		Layout.call(this, params)
-	}
-
-	$.extend(module.Classic.prototype, Layout.prototype, {
-		constructor: module.Classic,
-
-		/**
-		 * Initializes the Classic Layout.
-		 * 
-		 * @param {Object} params The initialization parameters.
-		 */
-		initialize: function(params) {
-
-			$('#layout').addClass('classic')
-
-			var w = this.width / 2
-			var h = this.height / 2
-
-			$.extend(params, {
-				layout: this,
-				renderer: this.renderer,
-				perspectiveScene: this.perspectiveScene,
-				orthographicScene: this.orthographicScene
-			})
-
-			// Perspective camera
-			this.views.push(new module.View.Perspective($.extend(params, {
-				viewport: new THREE.Vector4(0, h, w, h),
-				position: new THREE.Vector3(0, 0, 0)
-			})))
-
-			$.extend(params, {
-				target: this.views[0].boom
-			})
-
-			// Orthographic XY (top-down)
-			this.views.push(new module.View.Orthographic($.extend(params, {
-				viewport: new THREE.Vector4(w, h, w, h),
-				position: new THREE.Vector3(0, 0, 1)
-			})))
-
-			// Orthographic YZ (left)
-			this.views.push(new module.View.Orthographic($.extend(params, {
-				viewport: new THREE.Vector4(0, 0, w, h),
-				position: new THREE.Vector3(1, 0, 0)
-			})))
-
-			// Orthographic XZ (back)
-			this.views.push(new module.View.Orthographic($.extend(params, {
-				viewport: new THREE.Vector4(w, 0, w, h),
-				position: new THREE.Vector3(0, -1, 0)
-			})))
-		},
-
-		/**
-		 * Resizes all Views based on the window size.
-		 * 
-		 * @param {Number} width The new Layout width.
-		 * @param {Number} height The new Layout height.
-		 */
-		onResize: function(width, height) {
-
-			var w = width / 2, h = height / 2
-
-			this.views[0].setViewport(new THREE.Vector4(0, h, w, h))
-			this.views[1].setViewport(new THREE.Vector4(w, h, w, h))
-			this.views[2].setViewport(new THREE.Vector4(0, 0, w, h))
-			this.views[3].setViewport(new THREE.Vector4(w, 0, w, h))
 		}
 	})
 

@@ -19,11 +19,13 @@ require.config({
 		THREE: 'main/lib/three-r55',
 		Underscore: 'main/lib/underscore-1.4.3.min',
 
+		'Radiant.Config': 'main/config',
 		'Radiant.Controller': 'main/controller',
 		'Radiant.Event': 'main/event',
+		'Radiant.Layout': 'main/layout',
+		'Radiant.Map': 'main/map',
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
-		'Radiant.Model': 'main/model',
 		'Radiant.Polygon': 'main/polygon',
 		'Radiant.Ui': 'main/ui',
 		'Radiant.Util': 'main/util',
@@ -32,7 +34,7 @@ require.config({
 		Jasmine: 'test/lib/jasmine-1.3.1',
 		JasmineHtml: 'test/lib/jasmine-html-1.3.1',
 
-		'Radiant.Model.Test': 'test/model',
+		'Radiant.Map.Test': 'test/map',
 		'Radiant.Polygon.Test': 'test/polygon'
 	},
 
@@ -53,7 +55,7 @@ var Radiant = Radiant || {}
 Radiant.Version = 'RadiantJS 0.1'
 
 if (Radiant.Test) {
-	require([ 'JasmineHtml', 'Radiant.Model.Test', 'Radiant.Polygon.Test' ], function() {
+	require([ 'JasmineHtml', 'Radiant.Map.Test', 'Radiant.Polygon.Test' ], function() {
 		jasmine.getEnv().addReporter(new jasmine.HtmlReporter())
 		jasmine.getEnv().execute()
 	})

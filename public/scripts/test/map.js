@@ -5,14 +5,14 @@
  * 
  * @author jdolan
  */
-define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
+define('Radiant.Map.Test', [ 'Jasmine', 'Radiant.Map' ], function() {
 
-	describe('Radiant.Model.Test', function() {
+	describe('Radiant.Map.Test', function() {
 
 		describe('media/maps/construct.map', function() {
 
 			var map = undefined
-			Radiant.Model.MapFactory.load('media/maps/construct.map', function(m) {
+			Radiant.Map.Factory.load('media/maps/construct.map', function(m) {
 				map = m
 			})
 
@@ -72,7 +72,7 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 		describe('media/maps/torn.map', function() {
 
 			var map = undefined
-			Radiant.Model.MapFactory.load('media/maps/torn.map', function(m) {
+			Radiant.Map.Factory.load('media/maps/torn.map', function(m) {
 				map = m
 			})
 
@@ -124,7 +124,7 @@ define('Radiant.Model.Test', [ 'Jasmine', 'Radiant.Model' ], function() {
 				map.worldspawn().update()
 				var end = new Date().getTime()
 
-				expect(end - start).toBeLessThan(100)
+				expect(end - start).toBeLessThan(150)
 				console.log('Torn worldspawn update', end - start)
 			})
 		})

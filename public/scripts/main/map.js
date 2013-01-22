@@ -6,47 +6,9 @@
  * 
  * @author jdolan
  */
-define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], function() {
+define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 	var module = {}
-
-	/**
-	 * Game configurations.
-	 */
-	module.Game = Backbone.Model.extend({
-		defaults: {
-			Name: 'Unnamed Game',
-			LevelBounds: 8192,
-			Brushdef: 'idTech2'
-		}
-	})
-
-	/**
-	 * User Preferences.
-	 */
-	module.Preferences = Backbone.Model.extend({
-		defaults: {
-			KeyForward: 'w',
-			KeyBack: 's',
-			KeyMoveLeft: 'a',
-			KeyMoveRight: 'd',
-			KeyMoveUp: 'd',
-			KeyMoveDown: 'c',
-			KeyLookUp: 'a',
-			KeyLookDown: 'z',
-			KeyLookLeft: ',',
-			KeyLookRight: '.',
-			KeyZoomIn: '-',
-			KeyZoomOut: '+',
-			KeySurfaceInspector: 'S',
-			KeyEntityInspector: 'n',
-			CameraMovementSpeed: 5.5,
-			CameraRotationSpeed: 2.0,
-			FreelookSensitivity: 0.1,
-			FreelookInvert: false,
-			FollowPerspective: true
-		}
-	})
 
 	/**
 	 * Surfaces are described by their plane, texture and attributes. Every
@@ -150,7 +112,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 			for ( var i = 0; i < 2; i++) {
 				var s = vectors[i].getComponent(sv)
 				var t = vectors[i].getComponent(tv)
-				
+
 				var newS = cos * s - sin * t
 				var newT = sin * s + cos * t
 
@@ -520,7 +482,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 	/**
 	 * A factory class for loading or creating Maps.
 	 */
-	module.MapFactory = {
+	module.Factory = {
 
 		/**
 		 * Loads a Map from the specified File or URI.
@@ -545,7 +507,7 @@ define('Radiant.Model', [ 'Backbone', 'Radiant.Material', 'Radiant.Polygon' ], f
 		}
 	}
 
-	window.Radiant.Model = module
+	window.Radiant.Map = module
 
 	return module
 })

@@ -1,11 +1,11 @@
-'use strict';
+'use strict'
 
 /**
  * Controller module of the Radiant MVC stack.
  * 
  * @author jdolan
  */
-define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
+define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout' ], function() {
 
 	var module = {}
 
@@ -104,11 +104,11 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 
 		params.application = this
 
-		this.preferences = new Radiant.Model.Preferences(params)
-		this.game = new Radiant.Model.Game(params)
-		this.layout = new Radiant.View.Classic(params)
+		this.preferences = new Radiant.Config.Preferences(params)
+		this.game = new Radiant.Config.Game(params)
+		this.layout = new Radiant.Layout.Classic(params)
 		this.menu = new module.MainMenu(params)
-		this.map = new Radiant.Model.Map()
+		this.map = new Radiant.Map.Map()
 
 		console.log(Radiant.Version)
 	}
@@ -137,7 +137,7 @@ define('Radiant.Controller', [ 'Radiant.Model', 'Radiant.View' ], function() {
 					$(this).trigger(Radiant.Event.Map.Load, this.map)
 				}
 
-				Radiant.Model.MapFactory.load(file, handler.bind(this))
+				Radiant.Map.Factory.load(file, handler.bind(this))
 			} else {
 				this.map = new Radiant.Model.Map()
 			}
