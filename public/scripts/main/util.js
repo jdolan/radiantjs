@@ -5,7 +5,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Util', [ 'jQuery', 'Underscore', 'THREE' ], function() {
+define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 
 	var module = {}
 

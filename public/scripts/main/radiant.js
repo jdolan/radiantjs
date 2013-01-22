@@ -13,11 +13,9 @@ require.config({
 	baseUrl: 'scripts',
 
 	paths: {
-		Backbone: 'main/lib/backbone-0.9.9.min',
 		GoogleAnalytics: 'main/lib/ga.min',
 		jQuery: 'main/lib/jquery-1.9.0.min',
 		THREE: 'main/lib/three-r55',
-		Underscore: 'main/lib/underscore-1.4.3.min',
 
 		'Radiant.Config': 'main/config',
 		'Radiant.Controller': 'main/controller',
@@ -39,10 +37,6 @@ require.config({
 	},
 
 	shim: {
-		Backbone: {
-			deps: [ 'Underscore' ],
-			exports: 'Backbone'
-		},
 		JasmineHtml: {
 			deps: [ 'Jasmine' ]
 		}

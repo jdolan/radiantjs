@@ -176,7 +176,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			}
 
 			if (culledSurfaces.length) {
-				this.surfaces = _.without(this.surfaces, culledSurfaces)
+				// TODO this.surfaces = _.without(this.surfaces, culledSurfaces)
 			}
 
 			return this
