@@ -175,8 +175,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				}
 			}
 
-			if (culledSurfaces.length) {
-				// TODO this.surfaces = _.without(this.surfaces, culledSurfaces)
+			for ( var i = 0; i < culledSurfaces.length; i++) {
+				this.surfaces.splice(this.surfaces.indexOf(culledSurfaces[i]), 1)
 			}
 
 			return this
