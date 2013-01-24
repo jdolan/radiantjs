@@ -106,8 +106,10 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 
 		this.preferences = new Radiant.Config.Preferences(params)
 		this.game = new Radiant.Config.Game(params)
+
 		this.layout = new Radiant.Layout.Classic(params)
-		this.menu = new module.MainMenu(params)
+		this.mainMenu = new module.MainMenu(params)
+
 		this.map = new Radiant.Map.Map()
 
 		console.log(Radiant.Version)
@@ -132,12 +134,12 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 			$(this).trigger(Radiant.Event.Map.Unload, this.map)
 
 			if (file) {
-				var handler = function(map) {
+				var complete = function(map) {
 					this.map = map
 					$(this).trigger(Radiant.Event.Map.Load, this.map)
 				}
 
-				Radiant.Map.Factory.load(file, handler.bind(this))
+				Radiant.Map.Factory.load(file, complete.bind(this))
 			} else {
 				this.map = new Radiant.Model.Map()
 			}

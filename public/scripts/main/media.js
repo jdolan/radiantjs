@@ -10,51 +10,13 @@ define('Radiant.Media', [ 'Radiant.Event', 'Radiant.Util' ], function() {
 	var module = {
 
 		/**
-		 * Constant for material images.
+		 * The media root.
 		 */
-		Material: 0x1
+		Root: 'http://s3-us-west-2.amazonaws.com/radiantjs/media/'
 	}
-
-	/**
-	 * The media cache.
-	 */
-	var cache = []
-
-	/**
-	 * Loads the asset by the specified name and type.
-	 * 
-	 * @param {String} name The asset name.
-	 * @param {Number} type The asset type.
-	 * @param {Boolean} reload Force reload.
-	 * 
-	 * @return {Object} The asset.
-	 */
-	module.load = function(name, type, reload) {
 		
-		var key = '/media/' + name
-		var asset = null
-
-		if (cache[key] && !reload) {
-			asset = cache[key]
-		} else {
-			switch (type) {
-
-			case module.Material:
-				asset = THREE.ImageUtils.loadTexture(key)
-				asset.wrapS = asset.wrapT = THREE.RepeatWrapping
-				break
-
-			default:
-				console.error('Failed to load "' + key + '" (' + type + ')')
-				break
-			}
-
-			if (asset) {
-				cache[key] = asset
-			}
-		}
-
-		return asset
+	module.index = function() {
+		
 	}
 
 	window.Radiant.Media = module

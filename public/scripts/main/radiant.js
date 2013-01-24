@@ -33,6 +33,7 @@ require.config({
 		JasmineHtml: 'test/lib/jasmine-html-1.3.1',
 
 		'Radiant.Map.Test': 'test/map',
+		'Radiant.Material.Test': 'test/material',
 		'Radiant.Polygon.Test': 'test/polygon'
 	},
 
@@ -49,12 +50,19 @@ var Radiant = Radiant || {}
 Radiant.Version = 'RadiantJS 0.1'
 
 if (Radiant.Test) {
-	require([ 'JasmineHtml', 'Radiant.Map.Test', 'Radiant.Polygon.Test' ], function() {
+	var specifications = [
+			'JasmineHtml',
+			'Radiant.Map.Test',
+			'Radiant.Material.Test',
+			'Radiant.Polygon.Test' ]
+
+	require(specifications, function() {
 		jasmine.getEnv().addReporter(new jasmine.HtmlReporter())
 		jasmine.getEnv().execute()
 	})
 } else {
 	require([ 'Radiant.Controller', 'GoogleAnalytics' ], function() {
+
 		window.radiant = new Radiant.Controller.Application({})
 		window.radiant.loadMap('media/maps/torn.map')
 

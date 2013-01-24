@@ -10,6 +10,29 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 	var module = {}
 
 	/**
+	 * 
+	 */
+	module.waitFor = function(callable, timeout) {
+
+		timeout = timeout || 1000 * 5
+
+		var time = 0, interval = setInterval(function() {
+
+			if (callable()) {
+				clearInterval(interval)
+				return true
+			}
+
+			if (time >= timeout) {
+				clearInterval(interval)
+				return false
+			}
+
+			time += 16
+		}, 16)
+	}
+
+	/**
 	 * A base class for parsing text files.
 	 * 
 	 * @constructor
@@ -22,7 +45,7 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 	}
 
 	$.extend(module.Parser.prototype, {
-		
+
 		/**
 		 * Parses the next token in the buffer. This is reminiscent of
 		 * <code>Com_Parse</code> in Quake's shared.c.
@@ -69,10 +92,10 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 		reset: function() {
 			this.index = 0
 		},
-		
+
 		/**
-		 * Unparses the specified token. It will be returned by the next call
-		 * to <code>nextToken</code>.
+		 * Unparses the specified token. It will be returned by the next call to
+		 * <code>nextToken</code>.
 		 * 
 		 * @param {String} token The token to unparse.
 		 */

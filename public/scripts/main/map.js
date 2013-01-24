@@ -19,9 +19,11 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		this.brush = null
 		this.plane = null
 
+		this.index = 0
 		this.vertices = null
 
 		this.texture = 'common/caulk'
+		this.material = null
 
 		this.offsetS = 0
 		this.offsetT = 0
@@ -38,46 +40,6 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	}
 
 	$.extend(module.Surface.prototype, {
-
-		/**
-		 * Updates the Brush Geometry to include this Surface.
-		 */
-		update: function() {
-			var meshGeometry = this.brush.meshGeometry
-			var lineGeometry = this.brush.lineGeometry
-
-			var index = meshGeometry.vertices.length
-			var normal = this.plane.normal.clone().negate()
-
-			var textureVectors = this.textureVectors()
-			var textureCoordinates = []
-
-			for ( var i = 0; i < this.vertices.length; i++) {
-
-				meshGeometry.vertices.push(this.vertices[i])
-
-				var s = this.offsetS + this.vertices[i].dot(textureVectors[0]) / 64
-				var t = this.offsetT + this.vertices[i].dot(textureVectors[1]) / 64
-
-				textureCoordinates.push(new THREE.Vector2(s, t))
-
-				if (i >= 2) {
-					var a = index, b = index + i - 1, c = index + i
-					var face = new THREE.Face3(a, b, c, normal)
-
-					meshGeometry.faces.push(face)
-
-					var st0 = textureCoordinates[0]
-					var st1 = textureCoordinates[i - 1]
-					var st2 = textureCoordinates[i]
-
-					meshGeometry.faceVertexUvs[0].push([ st0, st1, st2 ])
-				}
-
-				lineGeometry.vertices.push(this.vertices[i])
-				lineGeometry.vertices.push(this.vertices[(i + 1) % this.vertices.length])
-			}
-		},
 
 		/**
 		 * Returns the S and T vectors for the Surface. Ported directly from
@@ -124,6 +86,61 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			vectors[1].divideScalar(this.scaleT)
 
 			return vectors
+		},
+
+		/**
+		 * Updates the Brush Geometry to include this Surface.
+		 */
+		update: function() {
+
+			var materials = this.brush.entity.materials
+			var materialIndex = materials.indexOf(this.material)
+
+			if (materialIndex === -1) {
+				materialIndex = materials.push(this.material) - 1
+			}
+
+			var meshGeometry = this.brush.meshGeometry
+			var lineGeometry = this.brush.lineGeometry
+
+			var normal = this.plane.normal.clone().negate()
+
+			var textureVectors = this.textureVectors()
+			var textureCoordinates = []
+
+			var w = this.material.map.image.width || 256
+			var h = this.material.map.image.height || 256
+
+			this.index = meshGeometry.vertices.length
+
+			for ( var i = 0; i < this.vertices.length; i++) {
+
+				var vert0 = this.vertices[i]
+				var vert1 = this.vertices[(i + 1) % this.vertices.length]
+
+				meshGeometry.vertices.push(vert0)
+
+				var s = this.offsetS + vert0.dot(textureVectors[0]) / w
+				var t = this.offsetT + vert0.dot(textureVectors[1]) / h
+
+				textureCoordinates.push(new THREE.Vector2(s, t))
+
+				if (i >= 2) {
+					var a = this.index, b = this.index + i - 1, c = this.index + i
+					var face = new THREE.Face3(a, b, c, normal, materialIndex)
+
+					meshGeometry.faces.push(face)
+
+					var st0 = textureCoordinates[0]
+					var st1 = textureCoordinates[i - 1]
+					var st2 = textureCoordinates[i]
+
+					meshGeometry.faceVertexUvs[0].push([ st0, st1, st2 ])
+				}
+
+				lineGeometry.vertices.push(vert0)
+				lineGeometry.vertices.push(vert1)
+			}
 		}
 	})
 
@@ -198,6 +215,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		}
 
 		this.brushes = []
+		this.materials = []
 
 		this.meshGeometry = new THREE.Geometry()
 		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Mesh.entity)
@@ -219,6 +237,14 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				this.meshGeometry.faces.length = 0
 				this.meshGeometry.faceVertexUvs[0].length = 0
 
+				this.mesh.material = new THREE.MeshFaceMaterial(this.materials)
+
+				if (this.classname() === 'worldspawn') {
+					this.mesh.frustumCulled = this.line.frustumCulled = false
+				} else {
+					this.mesh.frustumCulled = this.line.frustumCulled = true
+				}
+
 				this.lineGeometry.vertices.length = 0
 
 				for ( var i = 0; i < this.brushes.length; i++) {
@@ -228,28 +254,17 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 					THREE.GeometryUtils.merge(this.lineGeometry, brush.lineGeometry)
 				}
 
-				this.mesh.material = Radiant.Material.Common.caulk
-
-				if (this.classname() === 'worldspawn') {
-					this.mesh.frustumCulled = this.line.frustumCulled = false
-				} else {
-					this.mesh.frustumCulled = this.line.frustumCulled = true
-				}
 			} else {
 				this.meshGeometry = this.lineGeometry = new THREE.CubeGeometry(24, 24, 24)
+
 				this.mesh.position = this.line.position = this.origin()
-
 				this.mesh.material = Radiant.Material.Mesh.entity
-
 				this.mesh.frustumCulled = this.line.frustumCulled = true
 			}
 
 			if (this.mesh.frustumCulled) {
 				this.meshGeometry.computeBoundingSphere()
-			}
-
-			if (this.line.frustumCulled) {
-				this.lineGeometry.computeBoundingSphere()
+				this.lineGeometry.boundingSphere = this.meshGeometry.boundingSphere
 			}
 
 			return this
@@ -380,6 +395,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 						this.nextToken() // )
 
 						surface.texture = this.nextToken()
+						surface.material = Radiant.Material.load(surface.texture)
 
 						surface.offsetS = parseFloat(this.nextToken())
 						surface.offsetT = parseFloat(this.nextToken())
@@ -488,18 +504,18 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 * Loads a Map from the specified File or URI.
 		 * 
 		 * @param {File|String} resource The .map File or URI.
-		 * @param {function} handler A success handler taking the new Map.
+		 * @param {function(Radiant.Map.Map)} complete A completion handler.
 		 */
-		load: function(resource, handler) {
+		load: function(resource, complete) {
 			if (resource instanceof File) {
 				var reader = new FileReader()
 				reader.onload = function(e) {
-					handler(new Parser(e.target.result).parse())
+					complete(new Parser(e.target.result).parse())
 				}
 				reader.readAsText(resource)
 			} else if ($.type(resource) === 'string') {
 				$.get(resource, function(data) {
-					handler(new Parser(data).parse())
+					complete(new Parser(data).parse())
 				})
 			} else {
 				console.error('Invalid file specified', resource)

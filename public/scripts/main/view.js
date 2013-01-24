@@ -323,7 +323,7 @@ define('Radiant.View', [ 'Radiant.Ui' ], function() {
 				var k = String.fromCharCode(e.which)
 
 				if (self.freelook) {
-					if (k === this.prefrences.keyForward) {
+					if (k === self.preferences.keyForward.value) {
 						self.velocity.z--
 						self.velocity.y += self.camera.rotation.x
 					} else if (k === self.preferences.keyBack.value) {
