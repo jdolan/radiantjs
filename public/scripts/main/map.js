@@ -127,7 +127,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 				if (i >= 2) {
 					var a = this.index, b = this.index + i - 1, c = this.index + i
-					var face = new THREE.Face3(a, b, c, normal, materialIndex)
+					var face = new THREE.Face3(a, b, c, normal, undefined, materialIndex)
 
 					meshGeometry.faces.push(face)
 
@@ -211,60 +211,78 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	module.Entity = function() {
 
 		this.pairs = {
-			classname: 'undefined'
+			classname: 'unknown'
 		}
 
 		this.brushes = []
 		this.materials = []
 
-		this.meshGeometry = new THREE.Geometry()
-		this.mesh = new THREE.Mesh(this.meshGeometry, Radiant.Material.Mesh.entity)
+		this.mesh = new THREE.Mesh(undefined, Radiant.Material.Mesh.entity)
+		this.line = new THREE.Line(undefined, Radiant.Material.Line.entity)
+	}
 
-		this.lineGeometry = new THREE.Geometry()
-		this.line = new THREE.Line(this.lineGeometry, Radiant.Material.Line.line, THREE.LinePieces)
+	/**
+	 * Geometry singletons for Entity classes.
+	 */
+	module.Entity.geometry = {
+		info_player_deathmatch: new THREE.CubeGeometry(24, 24, 64),
+		light: new THREE.CubeGeometry(8, 8, 8),
+		unknown: new THREE.CubeGeometry(16, 16, 16)
+	}
+
+	/**
+	 * <code>update</code> routines for Entity classes.
+	 */
+	module.Entity.update = {
+		light: function(self) {
+			self.mesh.rotation = self.line.rotation = new THREE.Vector3(1, 0, 1)
+		}
 	}
 
 	$.extend(module.Entity.prototype, {
 
 		/**
-		 * Updates the Geometry for this Entity.
+		 * Updates the Geometry instances for this Entity.
 		 */
 		update: function() {
 
 			if (this.brushes.length) {
 
-				this.meshGeometry.vertices.length = 0
-				this.meshGeometry.faces.length = 0
-				this.meshGeometry.faceVertexUvs[0].length = 0
-
+				this.mesh.geometry = new THREE.Geometry()
 				this.mesh.material = new THREE.MeshFaceMaterial(this.materials)
 
-				if (this.classname() === 'worldspawn') {
-					this.mesh.frustumCulled = this.line.frustumCulled = false
-				} else {
-					this.mesh.frustumCulled = this.line.frustumCulled = true
-				}
-
-				this.lineGeometry.vertices.length = 0
+				this.line.geometry = new THREE.Geometry()
+				this.line.material = Radiant.Material.Line.brush
+				this.line.type = THREE.LinePieces
 
 				for ( var i = 0; i < this.brushes.length; i++) {
 					var brush = this.brushes[i]
 
-					THREE.GeometryUtils.merge(this.meshGeometry, brush.meshGeometry)
-					THREE.GeometryUtils.merge(this.lineGeometry, brush.lineGeometry)
+					THREE.GeometryUtils.merge(this.mesh.geometry, brush.meshGeometry)
+					THREE.GeometryUtils.merge(this.line.geometry, brush.lineGeometry)
 				}
-
 			} else {
-				this.meshGeometry = this.lineGeometry = new THREE.CubeGeometry(24, 24, 24)
+				var geometry = module.Entity.geometry[this.classname()]
+				if (!geometry) {
+					geometry = module.Entity.geometry.unknown
+				}
+				this.mesh.geometry = this.line.geometry = geometry
 
+				var update = module.Entity.update[this.classname()]
+				if (update) {
+					update(this)
+				}
 				this.mesh.position = this.line.position = this.origin()
-				this.mesh.material = Radiant.Material.Mesh.entity
-				this.mesh.frustumCulled = this.line.frustumCulled = true
 			}
 
-			if (this.mesh.frustumCulled) {
-				this.meshGeometry.computeBoundingSphere()
-				this.lineGeometry.boundingSphere = this.meshGeometry.boundingSphere
+			// Setup culling for all Entities except worldspawn
+
+			if (this.classname() === 'worldspawn') {
+				this.mesh.frustumCulled = this.line.frustumCulled = false
+			} else {
+				this.mesh.geometry.computeBoundingSphere()
+				this.line.geometry.boundingSphere = this.mesh.geometry.boundingSphere
+				this.mesh.frustumCulled = this.line.frustumCulled = true
 			}
 
 			return this

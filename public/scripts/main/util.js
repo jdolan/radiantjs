@@ -83,7 +83,7 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 				}
 			}
 
-			return null
+			return token.length ? token : null
 		},
 
 		/**
@@ -107,6 +107,8 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 			}
 		}
 	})
+	
+	var __parser = new module.Parser()
 
 	/**
 	 * Parses a Vector3 from the specified String.
@@ -119,11 +121,12 @@ define('Radiant.Util', [ 'jQuery', 'THREE' ], function() {
 		var vector = null
 
 		if (string && string.length) {
-			var p = new module.Parser(string)
+			__parser.buffer = string
+			__parser.reset()
 
-			var x = parseFloat(p.nextToken())
-			var y = parseFloat(p.nextToken())
-			var z = parseFloat(p.nextToken())
+			var x = parseFloat(__parser.nextToken())
+			var y = parseFloat(__parser.nextToken())
+			var z = parseFloat(__parser.nextToken())
 
 			vector = new THREE.Vector3(x, y, z)
 		}
