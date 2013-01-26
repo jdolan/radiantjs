@@ -18,28 +18,36 @@
 	width: 50%;
 }
 
-#layout.classic div.viewport.perspective {
+#layout div.viewport.perspective {
 	border-top: none;
 	border-left: none;
 	left: 0;
 	top: 0;
 }
 
-#layout.classic div.viewport.orthographic.xy {
+#layout.default div.viewport.perspective {
+	height: 100%;
+}
+
+#layout div.viewport.orthographic.xy {
 	border-right: none;
 	border-top: none;
 	right: 0;
 	top: 0;
 }
 
-#layout.classic div.viewport.orthographic.yz {
+#layout div.viewport.orthographic.yz {
 	border-bottom: none;
 	border-left: none;
 	bottom: 0;
 	left: 0;
 }
 
-#layout.classic div.viewport.orthographic.xz {
+#layout.default div.viewport.orthographic.yz {
+	display: none;
+}
+
+#layout div.viewport.orthographic.xz {
 	border-bottom: none;
 	border-right: none;
 	bottom: 0;

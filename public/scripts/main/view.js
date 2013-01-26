@@ -302,12 +302,6 @@ define('Radiant.View', [ 'Radiant.Ui' ], function() {
 			this.pointLight = new THREE.PointLight(0xc0c0c0)
 			this.camera.add(this.pointLight)
 
-			/*
-			 * // a directional light in camera view direction (GtkRadiant)
-			 * this.directionalLight = new THREE.DirectionalLight(0x808080)
-			 * this.renderScene.add(this.directionalLight)
-			 */
-
 			this.axis = new module.Axis(this.camera)
 			this.orthographicScene.add(this.axis)
 
@@ -431,10 +425,6 @@ define('Radiant.View', [ 'Radiant.Ui' ], function() {
 			}
 
 			this.axis.update()
-
-			if (this.directionalLight)
-				this.directionalLight.position = new THREE.Vector3(0, 0, 1).applyEuler(
-						this.camera.rotation).applyEuler(this.boom.rotation)
 		},
 
 		/**
