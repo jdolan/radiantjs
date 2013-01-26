@@ -25,6 +25,8 @@ define('Radiant.Layout', [ 'Radiant.Ui', 'Radiant.View' ], function() {
 
 		this.views = new Array()
 
+		this.map = null
+
 		params.canvas = params.canvas || $('#layout > canvas')[0]
 
 		this.renderer = new THREE.WebGLRenderer(params)
@@ -97,6 +99,14 @@ define('Radiant.Layout', [ 'Radiant.Ui', 'Radiant.View' ], function() {
 
 			this.renderer.clear()
 
+			if (this.map) {
+				for ( var i = 0; i < this.map.entities.length; i++) {
+					var entity = this.map.entities[i]
+
+					entity.update()
+				}
+			}
+
 			for ( var i = 0; i < this.views.length; i++) {
 				this.views[i].render(time)
 			}
@@ -120,6 +130,7 @@ define('Radiant.Layout', [ 'Radiant.Ui', 'Radiant.View' ], function() {
 		 * Radiant.Event.Map.Load listener.
 		 */
 		onMapLoad: function(event, map) {
+			this.map = map
 
 			for ( var i = 0; i < map.entities.length; i++) {
 				var entity = map.entities[i]
@@ -133,6 +144,7 @@ define('Radiant.Layout', [ 'Radiant.Ui', 'Radiant.View' ], function() {
 		 * Radiant.Event.Map.Unload listener.
 		 */
 		onMapUnload: function(event, map) {
+			this.map = null
 
 			for ( var i = 0; i < map.entities.length; i++) {
 				var entity = map.entities[i]
