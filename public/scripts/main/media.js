@@ -12,7 +12,7 @@ define('Radiant.Media', [ 'Radiant.Event', 'Radiant.Util' ], function() {
 		/**
 		 * The media root.
 		 */
-		Root: 'http://s3-us-west-2.amazonaws.com/radiantjs/media/'
+		Root: 'http://media.radiantjs.com/media/'
 	}
 		
 	module.index = function() {
