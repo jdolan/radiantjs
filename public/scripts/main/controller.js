@@ -22,6 +22,8 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 		params.modal = params.modal || $('#open-file-modal')
 
 		Radiant.Ui.Modal.call(this, params)
+
+		this.input = $('input[type=file]', this.modal)[0]
 	}
 
 	$.extend(module.OpenFileModal.prototype, Radiant.Ui.Modal.prototype, {
@@ -41,9 +43,10 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 			})
 
 			$(':button[name=Open]', this.modal).click(function(e) {
-				var file = $('input[type=file]', self.modal)[0].files[0]
-				self.application.loadMap(file)
-				self.hide()
+				if (self.input.files.length) {
+					self.application.loadMap(self.input.files[0])
+					self.hide()
+				}
 				e.preventDefault()
 			})
 
