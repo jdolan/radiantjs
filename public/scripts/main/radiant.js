@@ -43,7 +43,7 @@ require.config({
 		}
 	},
 
-	urlArgs: 'bust=' + (new Date()).getTime()
+	urlArgs: window.location.hostname === 'localhost' ? new Date().getTime() : ''
 })
 
 var Radiant = Radiant || {}
