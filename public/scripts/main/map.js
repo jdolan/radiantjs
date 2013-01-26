@@ -47,7 +47,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 * 
 		 * @return {Array} The S and T Vectors (Vector3).
 		 */
-		textureVectors: function() {
+		textureVectors: function(w, h) {
 
 			var sv, tv, vectors = this.plane.textureVectors()
 			if (vectors[0].x) {
@@ -82,8 +82,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				vectors[i].setComponent(tv, newT)
 			}
 
-			vectors[0].divideScalar(this.scaleS)
-			vectors[1].divideScalar(this.scaleT)
+			vectors[0].divideScalar(this.scaleS * w)
+			vectors[1].divideScalar(this.scaleT * h)
 
 			return vectors
 		},
@@ -106,9 +106,6 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 			var normal = this.plane.normal.clone().negate()
 
-			var textureVectors = this.textureVectors()
-			var textureCoordinates = []
-
 			var w = this.material.map.image.width || 256
 			var h = this.material.map.image.height || 256
 
@@ -119,7 +116,13 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				})
 			}
 
+			var textureVectors = this.textureVectors(w, h)
+			var textureCoordinates = []
+
 			this.index = meshGeometry.vertices.length
+
+			var os = this.offsetS / w
+			var ot = this.offsetT / h
 
 			for ( var i = 0; i < this.vertices.length; i++) {
 
@@ -128,8 +131,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 				meshGeometry.vertices.push(vert0)
 
-				var s = (this.offsetS + vert0.dot(textureVectors[0])) / w
-				var t = (this.offsetT + vert0.dot(textureVectors[1])) / h
+				var s = vert0.dot(textureVectors[0]) + os
+				var t = vert0.dot(textureVectors[1]) + ot
 
 				textureCoordinates.push(new THREE.Vector2(s, t))
 

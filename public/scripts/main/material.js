@@ -49,6 +49,8 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 
 		this.name = uri
 
+		this.flipY = false
+
 		this.wrapS = THREE.RepeatWrapping
 		this.wrapT = THREE.RepeatWrapping
 
