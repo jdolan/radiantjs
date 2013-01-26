@@ -34,7 +34,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	/**
 	 * The shared Materials cache.
 	 */
-	var cache = []
+	var cache = [], bust = new Date().getTime()
 
 	/**
 	 * Textures load asynchronously and from remote servers.
@@ -66,7 +66,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 		this.loader.addEventListener('load', listener)
 		this.loader.addEventListener('error', listener)
 
-		this.loader.load(Radiant.Media.Root + uri, this.image)
+		this.loader.load(Radiant.Media.Root + uri + '?' + bust, this.image)
 	}
 
 	$.extend(module.Texture.prototype, THREE.Texture.prototype, {
