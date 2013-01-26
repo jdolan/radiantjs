@@ -41,7 +41,7 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 			})
 
 			$(':button[name=Open]', this.modal).click(function(e) {
-				var file = $('file', this.modal).files[0]
+				var file = $('input[type=file]', self.modal)[0].files[0]
 				self.application.loadMap(file)
 				self.hide()
 				e.preventDefault()
@@ -141,7 +141,7 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 
 				Radiant.Map.Factory.load(file, complete.bind(this))
 			} else {
-				this.map = new Radiant.Model.Map()
+				this.map = new Radiant.Map.Map()
 			}
 		}
 	})
