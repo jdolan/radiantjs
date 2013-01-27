@@ -79,7 +79,9 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 		},
 
 		onLoad: function(cb) {
-			this.loader.addEventListener('load', cb)
+			if (this.loader) {
+				this.loader.addEventListener('load', cb)
+			}
 		}
 	})
 
