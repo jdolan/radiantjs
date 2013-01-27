@@ -49,6 +49,8 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 
 		this.name = uri
 
+		this.flipY = false
+
 		this.wrapS = THREE.RepeatWrapping
 		this.wrapT = THREE.RepeatWrapping
 
@@ -70,7 +72,15 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	}
 
 	$.extend(module.Texture.prototype, THREE.Texture.prototype, {
-		constructor: module.Texture
+		constructor: module.Texture,
+
+		isLoaded: function() {
+			return !this.loader
+		},
+
+		onLoad: function(cb) {
+			this.loader.addEventListener('load', cb)
+		}
 	})
 
 	/**
