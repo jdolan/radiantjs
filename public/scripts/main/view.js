@@ -7,7 +7,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.View', [ 'Radiant.Ui', 'Radiant.Event' ], function() {
+define('Radiant.View', [ 'Radiant.Ui' ], function() {
 
 	var module = {}
 

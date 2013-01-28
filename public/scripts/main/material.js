@@ -34,7 +34,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	/**
 	 * The shared Materials cache.
 	 */
-	var cache = [], bust = new Date().getTime()
+	var cache = [], bust = encodeURI(window.location.host)
 
 	/**
 	 * Textures load asynchronously and from remote servers.
@@ -74,12 +74,22 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	$.extend(module.Texture.prototype, THREE.Texture.prototype, {
 		constructor: module.Texture,
 
-		isLoaded: function() {
-			return !this.loader
+		/**
+		 * @return {Boolean} True if this Texture is loading, false if loaded.
+		 */
+		isLoading: function() {
+			return this.loader !== undefined
 		},
 
-		onLoad: function(cb) {
-			this.loader.addEventListener('load', cb)
+		/**
+		 * Adds the specified <code>onLoad</code> handler to this Texture.
+		 * 
+		 * @param {function(Event)} handler The <code>onLoad</code> handler.
+		 */
+		onLoad: function(handler) {
+			if (this.isLoading()) {
+				this.loader.addEventListener('load', handler)
+			}
 		}
 	})
 
@@ -87,11 +97,11 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	 * Loads the Material by the specified name.
 	 * 
 	 * @param {String} name The Material name (e.g. torn/floor1).
-	 * @param {function(THREE.Material)} Optional completion handler.
+	 * @param {function(Event)} An optional <code>onLoad</code> handler.
 	 * 
 	 * @return {THREE.Material} The material.
 	 */
-	module.load = function(name, complete) {
+	module.load = function(name, onLoad) {
 
 		var uri
 		if (name.charAt(0) === '#') {
@@ -108,11 +118,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 			})
 		}
 
-		if (material.map.loader && complete) {
-			material.map.loader.addEventListener('load', function(event) {
-				complete(material)
-			})
-		}
+		material.map.onLoad(onLoad)
 
 		return material
 	}

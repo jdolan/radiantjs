@@ -19,7 +19,6 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		this.brush = null
 		this.plane = null
 
-		this.index = 0
 		this.vertices = null
 
 		this.texture = 'common/caulk'
@@ -40,6 +39,21 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	}
 
 	$.extend(module.Surface.prototype, {
+
+		/**
+		 * Sets the specified texture, resolving the Material.
+		 * 
+		 * @param {String} texture The texture name (e.g. 'torn/floor1').
+		 */
+		setTexture: function(texture) {
+			this.texture = texture
+			var self = this
+
+			this.material = Radiant.Material.load(this.texture, function(event) {
+				self.brush.dirty = true
+				self.brush.entity.dirty = true
+			})
+		},
 
 		/**
 		 * Returns the S and T vectors for the Surface. Ported directly from
@@ -89,10 +103,9 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		},
 
 		/**
-		 * Updates the Brush Geometry to include this Surface.
+		 * Updates the Brush's Geometry to include this Surface.
 		 */
 		update: function() {
-			var surface = this
 
 			var materials = this.brush.entity.materials
 			var materialIndex = materials.indexOf(this.material)
@@ -109,20 +122,13 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			var w = this.material.map.image.width || 256
 			var h = this.material.map.image.height || 256
 
-			if (!this.material.map.isLoaded()) {
-				this.material.map.onLoad(function() {
-					surface.brush.dirty = true
-					surface.brush.entity.dirty = true
-				})
-			}
-
 			var textureVectors = this.textureVectors(w, h)
 			var textureCoordinates = []
 
-			this.index = meshGeometry.vertices.length
-
 			var os = this.offsetS / w
 			var ot = this.offsetT / h
+
+			var index = meshGeometry.vertices.length
 
 			for ( var i = 0; i < this.vertices.length; i++) {
 
@@ -137,7 +143,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				textureCoordinates.push(new THREE.Vector2(s, t))
 
 				if (i >= 2) {
-					var a = this.index, b = this.index + i - 1, c = this.index + i
+					var a = index, b = index + i - 1, c = index + i
 					var face = new THREE.Face3(a, b, c, normal, undefined, materialIndex)
 
 					meshGeometry.faces.push(face)
@@ -152,6 +158,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				lineGeometry.vertices.push(vert0)
 				lineGeometry.vertices.push(vert1)
 			}
+
+			return this
 		}
 	})
 
@@ -181,8 +189,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 */
 		update: function() {
 
-			if (!this.dirty) {
-				return
+			if (this.dirty === false) {
+				return this
 			}
 
 			this.dirty = false
@@ -215,7 +223,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				this.surfaces.splice(this.surfaces.indexOf(culledSurfaces[i]), 1)
 			}
 
-			return
+			return this
 		}
 	})
 
@@ -236,11 +244,10 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		this.brushes = []
 		this.materials = []
 
-		this.dirty = true
 		this.mesh = new THREE.Mesh(undefined, Radiant.Material.Mesh.entity)
 		this.line = new THREE.Line(undefined, Radiant.Material.Line.entity)
 
-		this.built_geometry = false
+		this.dirty = true
 	}
 
 	/**
@@ -268,34 +275,32 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 */
 		update: function() {
 
-			if (!this.dirty) {
-				return
+			if (this.dirty === false) {
+				return this
 			}
 
 			this.dirty = false
 
 			if (this.brushes.length) {
-				if (!this.built_geometry) {
+				if (this.mesh.geometry === undefined) {
 					this.mesh.geometry = new THREE.Geometry()
 					this.mesh.material = new THREE.MeshFaceMaterial(this.materials)
-
-					this.line.geometry = new THREE.Geometry()
-					this.line.material = Radiant.Material.Line.brush
-					this.line.type = THREE.LinePieces
-
-					this.built_geometry = true
 				} else {
 					this.mesh.geometry.vertices.length = 0
 					this.mesh.geometry.faces.length = 0
 					this.mesh.geometry.faceVertexUvs[0].length = 0
+				}
 
+				if (this.line.geometry === undefined) {
+					this.line.geometry = new THREE.Geometry()
+					this.line.material = Radiant.Material.Line.brush
+					this.line.type = THREE.LinePieces
+				} else {
 					this.line.geometry.vertices.length = 0
 				}
 
 				for ( var i = 0; i < this.brushes.length; i++) {
-					var brush = this.brushes[i]
-					
-					brush.update()
+					var brush = this.brushes[i].update()
 
 					THREE.GeometryUtils.merge(this.mesh.geometry, brush.meshGeometry)
 					THREE.GeometryUtils.merge(this.line.geometry, brush.lineGeometry)
@@ -314,7 +319,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				this.mesh.position = this.line.position = this.origin()
 			}
 
-			// Setup culling for all Entities except worldspawn
+			// Setup frustum culling for all Entities except worldspawn
 
 			if (this.classname() === 'worldspawn') {
 				this.mesh.frustumCulled = this.line.frustumCulled = false
@@ -323,10 +328,12 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				this.line.geometry.boundingSphere = this.mesh.geometry.boundingSphere
 				this.mesh.frustumCulled = this.line.frustumCulled = true
 			}
+
+			return this
 		},
 
 		/**
-		 * @param {String} The key, e.g. <em>angle</em>.
+		 * @param {String} The key (e.g. <em>angle</em>).
 		 * 
 		 * @return {String|Number} The value for the specified key.
 		 */
@@ -337,7 +344,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		/**
 		 * Sets the key-value pair.
 		 * 
-		 * @param {String} key The key, e.g. <em>angle</em>
+		 * @param {String} key The key (e.g. <em>angle</em>).
 		 * @param {String|Number} The value.
 		 */
 		setValue: function(key, value) {
@@ -390,7 +397,16 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	$.extend(module.Map.prototype, {
 
 		/**
-		 * @return {Radiant.Model.Entity} The worldspawn entity.
+		 * Updates any dirty Entities within this Map.
+		 */
+		update: function() {
+			for ( var i = 0; i < this.entities.length; i++) {
+				this.entities[i].update()
+			}
+		},
+
+		/**
+		 * @return {Radiant.Map.Entity} The worldspawn entity.
 		 */
 		worldspawn: function() {
 			return this.entities[0]
@@ -415,9 +431,9 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		/**
 		 * Parses a Brush.
 		 * 
-		 * @param {Radiant.Model.Entity} The current Entity.
+		 * @param {Radiant.Map.Entity} The current Entity.
 		 * 
-		 * @return {Radiant.Model.Brush} The parsed Brush.
+		 * @return {Radiant.Map.Brush} The parsed Brush.
 		 */
 		parseBrush: function(entity) {
 
@@ -449,8 +465,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 						this.nextToken() // )
 
-						surface.texture = this.nextToken()
-						surface.material = Radiant.Material.load(surface.texture)
+						surface.setTexture(this.nextToken())
 
 						surface.offsetS = parseFloat(this.nextToken())
 						surface.offsetT = parseFloat(this.nextToken())
@@ -488,15 +503,15 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				}
 			}
 
-			return brush
+			return brush.update()
 		},
 
 		/**
 		 * Parses an Entity.
 		 * 
-		 * @param {Radiant.Model.Map} The current Map.
+		 * @param {Radiant.Map.Map} The current Map.
 		 * 
-		 * @return {Radiant.Model.Entity} The parsed Entity.
+		 * @return {Radiant.Map.Entity} The parsed Entity.
 		 */
 		parseEntity: function(map) {
 
@@ -522,13 +537,13 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				}
 			}
 
-			return entity
+			return entity.update()
 		},
 
 		/**
 		 * Parse entry point.
 		 * 
-		 * @return {Radiant.Model.Map} The parsed Map.
+		 * @return {Radiant.Map.Map} The parsed Map.
 		 */
 		parse: function() {
 

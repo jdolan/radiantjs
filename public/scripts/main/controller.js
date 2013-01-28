@@ -146,6 +146,19 @@ define('Radiant.Controller', [ 'Radiant.Config', 'Radiant.Map', 'Radiant.Layout'
 			} else {
 				this.map = new Radiant.Map.Map()
 			}
+		},
+
+		/**
+		 * Refreshes any stale information in the application. This is called
+		 * once per frame by the Layout.
+		 * 
+		 * @param {Number} time Milliseconds since start.
+		 */
+		update: function(time) {
+
+			if (this.map) {
+				this.map.update()
+			}
 		}
 	})
 
