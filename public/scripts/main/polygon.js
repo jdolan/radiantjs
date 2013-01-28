@@ -25,12 +25,12 @@ define('Radiant.Polygon', [ 'Radiant.Util' ], function() {
 		 */
 		TextureVectors: [ {
 			n: new THREE.Vector3(0, 0, 1),
-			s: new THREE.Vector3(1, 0, 1),
-			t: new THREE.Vector3(0, -1, 1)
+			s: new THREE.Vector3(1, 0, 0),
+			t: new THREE.Vector3(0, -1, 0)
 		}, {
 			n: new THREE.Vector3(0, 0, -1),
-			s: new THREE.Vector3(1, 0, 1),
-			t: new THREE.Vector3(0, -1, 1)
+			s: new THREE.Vector3(1, 0, 0),
+			t: new THREE.Vector3(0, -1, 0)
 		}, {
 			n: new THREE.Vector3(1, 0, 0),
 			s: new THREE.Vector3(0, 1, 0),
