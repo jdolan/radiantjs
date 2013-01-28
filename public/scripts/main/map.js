@@ -61,7 +61,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 * 
 		 * @return {Array} The S and T Vectors (Vector3).
 		 */
-		textureVectors: function(w, h) {
+		textureVectors: function() {
 
 			var sv, tv, vectors = this.plane.textureVectors()
 			if (vectors[0].x) {
@@ -96,8 +96,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				vectors[i].setComponent(tv, newT)
 			}
 
-			vectors[0].divideScalar(this.scaleS * w)
-			vectors[1].divideScalar(this.scaleT * h)
+			vectors[0].divideScalar(this.scaleS)
+			vectors[1].divideScalar(this.scaleT)
 
 			return vectors
 		},
@@ -105,7 +105,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		/**
 		 * Updates the Brush's Geometry to include this Surface.
 		 */
-		update: function() {
+		update: function(forced) {
 
 			var materials = this.brush.entity.materials
 			var materialIndex = materials.indexOf(this.material)
@@ -119,14 +119,11 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 			var normal = this.plane.normal.clone().negate()
 
-			var w = this.material.map.image.width || 256
-			var h = this.material.map.image.height || 256
-
-			var textureVectors = this.textureVectors(w, h)
+			var textureVectors = this.textureVectors()
 			var textureCoordinates = []
 
-			var os = this.offsetS / w
-			var ot = this.offsetT / h
+			var w = this.material.map.image.width || 256
+			var h = this.material.map.image.height || 256
 
 			var index = meshGeometry.vertices.length
 
@@ -137,8 +134,8 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 				meshGeometry.vertices.push(vert0)
 
-				var s = vert0.dot(textureVectors[0]) + os
-				var t = vert0.dot(textureVectors[1]) + ot
+				var s = (vert0.dot(textureVectors[0]) + this.offsetS) / w
+				var t = (vert0.dot(textureVectors[1]) + this.offsetT) / h
 
 				textureCoordinates.push(new THREE.Vector2(s, t))
 
@@ -187,9 +184,9 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		/**
 		 * Updates all Geometry for this Brush.
 		 */
-		update: function() {
+		update: function(forced) {
 
-			if (this.dirty === false) {
+			if (!forced && this.dirty === false) {
 				return this
 			}
 
@@ -213,7 +210,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				surface.vertices = surface.plane.clip(planes, surface.vertices)
 
 				if (surface.vertices.length) {
-					surface.update()
+					surface.update(forced)
 				} else {
 					culledSurfaces.push(surface)
 				}
@@ -273,9 +270,9 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		/**
 		 * Updates the Geometry instances for this Entity.
 		 */
-		update: function() {
+		update: function(forced) {
 
-			if (this.dirty === false) {
+			if (!forced && this.dirty === false) {
 				return this
 			}
 
@@ -284,6 +281,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			if (this.brushes.length) {
 				if (this.mesh.geometry === undefined) {
 					this.mesh.geometry = new THREE.Geometry()
+					this.mesh.geometry.dynamic = true
 					this.mesh.material = new THREE.MeshFaceMaterial(this.materials)
 				} else {
 					this.mesh.geometry.vertices.length = 0
@@ -293,6 +291,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 				if (this.line.geometry === undefined) {
 					this.line.geometry = new THREE.Geometry()
+					this.line.geometry.dynamic = true
 					this.line.material = Radiant.Material.Line.brush
 					this.line.type = THREE.LinePieces
 				} else {
@@ -300,11 +299,16 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 				}
 
 				for ( var i = 0; i < this.brushes.length; i++) {
-					var brush = this.brushes[i].update()
+					var brush = this.brushes[i].update(forced)
 
 					THREE.GeometryUtils.merge(this.mesh.geometry, brush.meshGeometry)
 					THREE.GeometryUtils.merge(this.line.geometry, brush.lineGeometry)
 				}
+
+				this.mesh.geometry.verticesNeedUpdate = true
+				this.mesh.geometry.uvsNeedUpdate = true
+
+				this.line.geometry.verticesNeedUpdate = true
 			} else {
 				var geometry = module.Entity.geometry[this.classname()]
 				if (!geometry) {
@@ -314,7 +318,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 				var update = module.Entity.update[this.classname()]
 				if (update) {
-					update(this)
+					update(this, forced)
 				}
 				this.mesh.position = this.line.position = this.origin()
 			}
@@ -466,6 +470,11 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 						this.nextToken() // )
 
 						surface.setTexture(this.nextToken())
+
+						surface.material.map.onLoad(function() {
+							surface.brush.dirty = true
+							surface.brush.entity.dirty = true
+						})
 
 						surface.offsetS = parseFloat(this.nextToken())
 						surface.offsetT = parseFloat(this.nextToken())
