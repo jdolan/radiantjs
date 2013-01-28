@@ -34,7 +34,7 @@ define('Radiant.Material', [ 'Radiant.Media' ], function() {
 	/**
 	 * The shared Materials cache.
 	 */
-	var cache = [], bust = encodeURI(window.location.host)
+	var cache = [], bust = window.location.host
 
 	/**
 	 * Textures load asynchronously and from remote servers.
