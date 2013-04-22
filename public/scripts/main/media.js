@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 /**
  * The Media module provides media and asset management.

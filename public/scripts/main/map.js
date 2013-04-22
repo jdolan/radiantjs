@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 /**
  * This module provides an object model and framework for iterating and
@@ -6,7 +6,7 @@
  * 
  * @author jdolan
  */
-define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
+define('Radiant.Map', [ 'Radiant.Geometry', 'Radiant.Material' ], function() {
 
 	var module = {}
 
@@ -17,9 +17,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	module.Surface = function() {
 
 		this.brush = null
-		this.plane = null
-
-		this.vertices = null
+		this.polygon = null
 
 		this.texture = 'common/caulk'
 		this.material = null
@@ -39,6 +37,16 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 	}
 
 	$.extend(module.Surface.prototype, {
+
+		/**
+		 * Clips this Surface to the specified Plane, returning the new Polygon
+		 * definition or null if culled.
+		 * 
+		 * @return {CSG.Polygon} The new Polygon definition, or null.
+		 */
+		clipTo: function(plane) {
+			return (this.polygon = this.polygon.clipTo(plane))
+		},
 
 		/**
 		 * Sets the specified texture, resolving the Material.
@@ -63,7 +71,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 		 */
 		textureVectors: function() {
 
-			var sv, tv, vectors = this.plane.textureVectors()
+			var sv, tv, vectors = this.polygon.plane.textureVectors()
 			if (vectors[0].x) {
 				sv = 0
 			} else if (vectors[0].y) {
@@ -117,7 +125,7 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			var meshGeometry = this.brush.meshGeometry
 			var lineGeometry = this.brush.lineGeometry
 
-			var normal = this.plane.normal.clone().negate()
+			var normal = this.polygon.plane.normal.negated()
 
 			var textureVectors = this.textureVectors()
 			var textureCoordinates = []
@@ -126,11 +134,12 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 			var h = this.material.map.image.height || 256
 
 			var index = meshGeometry.vertices.length
+			var vertices = this.polygon.vertices
 
-			for ( var i = 0; i < this.vertices.length; i++) {
+			for ( var i = 0; i < vertices.length; i++) {
 
-				var vert0 = this.vertices[i]
-				var vert1 = this.vertices[(i + 1) % this.vertices.length]
+				var vert0 = vertices[i].pos
+				var vert1 = vertices[(i + 1) % vertices.length].pos
 
 				meshGeometry.vertices.push(vert0)
 
@@ -198,21 +207,29 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 
 			this.lineGeometry.vertices.length = 0
 
-			var planes = []
-			for ( var i = 0; i < this.surfaces.length; i++) {
-				planes.push(this.surfaces[i].plane)
-			}
-
 			var culledSurfaces = []
 			for ( var i = 0; i < this.surfaces.length; i++) {
 				var surface = this.surfaces[i]
 
-				surface.vertices = surface.plane.clip(planes, surface.vertices)
+				for ( var j = 0; j < this.surfaces.length; j++) {
+					if (i !== j) {
 
-				if (surface.vertices.length) {
+						var s = this.surfaces[j]
+						if (s.polygon !== null) {
+
+							var old = surface.polygon.vertices
+
+							if (/* surface.clipTo(s.polygon.plane) === null */false) {
+								console.debug(s.polygon.plane + ' clips ' + old)
+								culledSurfaces.push(surface)
+								break
+							}
+						}
+					}
+				}
+
+				if (surface.polygon !== null) {
 					surface.update(forced)
-				} else {
-					culledSurfaces.push(surface)
 				}
 			}
 
@@ -456,25 +473,20 @@ define('Radiant.Map', [ 'Radiant.Material', 'Radiant.Polygon' ], function() {
 					var y = parseFloat(this.nextToken())
 					var z = parseFloat(this.nextToken())
 
-					points.push(new THREE.Vector3(x, y, z))
+					points.push(new CSG.Vector(x, y, z))
 
 					if (points.length === 3) {
 						var surface = new module.Surface()
 						surface.brush = brush
 
 						var a = points[0], b = points[1], c = points[2]
-						surface.plane = new THREE.Plane().setFromCoplanarPoints(a, b, c)
+						surface.polygon = CSG.Polygon.fromPlane(CSG.Plane.fromPoints(a, b, c))
 
 						points.length = 0
 
 						this.nextToken() // )
 
 						surface.setTexture(this.nextToken())
-
-						surface.material.map.onLoad(function() {
-							surface.brush.dirty = true
-							surface.brush.entity.dirty = true
-						})
 
 						surface.offsetS = parseFloat(this.nextToken())
 						surface.offsetT = parseFloat(this.nextToken())

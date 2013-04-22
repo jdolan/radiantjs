@@ -7,7 +7,7 @@
  */
 define('Radiant.Material.Test', [ 'Jasmine', 'Radiant.Material' ], function() {
 	
-	describe('common/origin', function() {
+	xdescribe('common/origin', function() {
 		
 		var material = undefined
 		Radiant.Material.load('common/origin', function(m) {

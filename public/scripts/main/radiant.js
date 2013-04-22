@@ -13,6 +13,7 @@ require.config({
 	baseUrl: 'scripts',
 
 	paths: {
+		CSG: 'main/lib/csg',
 		GoogleAnalytics: 'main/lib/ga.min',
 		jQuery: 'main/lib/jquery-1.9.0.min',
 		THREE: 'main/lib/three-r55',
@@ -20,11 +21,11 @@ require.config({
 		'Radiant.Config': 'main/config',
 		'Radiant.Controller': 'main/controller',
 		'Radiant.Event': 'main/event',
+		'Radiant.Geometry': 'main/geometry',
 		'Radiant.Layout': 'main/layout',
 		'Radiant.Map': 'main/map',
 		'Radiant.Material': 'main/material',
 		'Radiant.Media': 'main/media',
-		'Radiant.Polygon': 'main/polygon',
 		'Radiant.Ui': 'main/ui',
 		'Radiant.Util': 'main/util',
 		'Radiant.View': 'main/view',
@@ -33,8 +34,8 @@ require.config({
 		JasmineHtml: 'test/lib/jasmine-html-1.3.1',
 
 		'Radiant.Map.Test': 'test/map',
+		'Radiant.Geometry.Test': 'test/geometry',
 		'Radiant.Material.Test': 'test/material',
-		'Radiant.Polygon.Test': 'test/polygon'
 	},
 
 	shim: {
@@ -52,9 +53,9 @@ Radiant.Version = 'RadiantJS 0.1'
 if (Radiant.Test) {
 	var specifications = [
 			'JasmineHtml',
+			'Radiant.Geometry.Test',
 			'Radiant.Map.Test',
-			'Radiant.Material.Test',
-			'Radiant.Polygon.Test' ]
+			'Radiant.Material.Test' ]
 
 	require(specifications, function() {
 		jasmine.getEnv().addReporter(new jasmine.HtmlReporter())

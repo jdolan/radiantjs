@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 /**
  * The View module provides Orthographic and Perspective projections into the
